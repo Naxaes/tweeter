@@ -1,0 +1,22 @@
+<div class="container">
+    {% for tweet_group in tweets %}
+    <div class="row">
+        {% for tweet in tweet_group %}
+            <div class="col-sm-4">
+                <h2>{{ tweet.username }}</h2>
+                <p>{{ tweet.content }}</p>
+                <div class="row">
+                    <div class="col-xs-8"> <footer>{{ tweet.time_posted }}</footer> </div>
+                    <div class="col-xs-2"> <footer><input type="submit" class="btn btn-default" value="Follow"></footer> </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+    <hr>
+
+    <footer>
+        <p>&copy; 2018 Tweeter.</p>
+    </footer>
+</div>

@@ -1,0 +1,39 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+
+    {% from 'includes/_formhelpers.html' import render_field %}
+
+    <h1>Your profile</h1>
+    <div>
+        <p>{{ form }}</p>
+        <p>{{ form }}</p>
+        <p>{{ form }}</p>
+        <p>{{ form }}</p>
+        <p>{{ form }}</p>
+        <p>{{ form }}</p>
+    </div>
+
+
+    <h1>Change info</h1>
+    <form method="POST" action="">
+        <div class="form-group">
+            {{ render_field(form.username, class_="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.email, class_="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.age, class_="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.password, class_="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.confirm, class_="form-control") }}
+        </div>
+
+        <p><input type="submit" class="btn btn-primary" value="Confirm"></p>
+    </form>
+
+{% endblock %}

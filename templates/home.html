@@ -1,0 +1,26 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+
+
+    <div class="jumbotron text-center">
+        <h1>Welcome {{ greeting }}!</h1>
+        <p class="lead">{{ message }}</p>
+    </div>
+
+    {% from 'includes/_formhelpers.html' import render_field %}
+    <form method="POST" action="">
+        <h3>Search</h3>
+        <div class="form-group">
+            {{ render_field(form.username, class_="form-control") }}
+        </div>
+    </form>
+
+    <hr>
+
+    <h1>{{ tweetheader }}</h1>
+
+    {% include 'includes/_tweetlayout.html' %}
+
+
+{% endblock %}
