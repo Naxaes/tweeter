@@ -2,9 +2,12 @@
 
 {% block body %}
 
-
     <div class="jumbotron text-center">
-        <h1>Welcome {{ greeting }}!</h1>
+        {% if session.logged_in %}
+            <h1>Welcome to Tweeter!</h1>
+        {% else %}
+            <h1>Welcome {{ session.username }}!</h1>
+        {% endif %}
         <p class="lead">{{ message }}</p>
     </div>
 
@@ -18,7 +21,11 @@
 
     <hr>
 
-    <h1>{{ tweetheader }}</h1>
+    {% if session.logged_in %}
+        <h1>Your tweets</h1>
+    {% else %}
+        <h1>Newest tweets</h1>
+    {% endif %}
 
     {% include 'includes/_tweetlayout.html' %}
 

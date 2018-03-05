@@ -7,13 +7,14 @@ from psycopg2.extras import NamedTupleCursor
 from passlib.hash import sha256_crypt
 
 
-Tweet = namedtuple('Tweet', 'username, content, time_posted')
-User  = namedtuple('User',  'username, email, age')
+Tweet = namedtuple('Tweet', 'tweetID, username, content, time_posted')
+User  = namedtuple('User',  'userID, username, email, age')
 
 
 class Database:
 
     def __init__(self, dbname, user, password='', host='localhost', port=5432):
+
         self.arguments = {
             'dbname':   dbname,
             'user':     user,
@@ -26,6 +27,7 @@ class Database:
             self.connection = connect(**self.arguments)
         except Error as error:
             print(error, "\nDid you remember to start your server?\n", file=sys.stderr)
+            exit(-1)
 
         self.cursor = self.connection.cursor(cursor_factory=NamedTupleCursor)
 
@@ -96,7 +98,7 @@ def get_newest_tweets(number):
     query = """
         START TRANSACTION READ ONLY ISOLATION LEVEL SERIALIZABLE;
             
-        SELECT username, content, time_posted
+        SELECT tweetID, username, content, time_posted
         FROM   Users JOIN Tweets ON userID = posterID
         ORDER BY time_posted DESC
         LIMIT %(number)s;
@@ -105,7 +107,7 @@ def get_newest_tweets(number):
     result = []
     for tweet in database.get_result_from_last_query(number):
         result.append(
-            Tweet(tweet.username, tweet.content, tweet.time_posted)
+            Tweet(tweet.tweetID, tweet.username, tweet.content, tweet.time_posted)
         )
 
     return result
@@ -133,7 +135,7 @@ def search_for_tweets(search):
     query = """
         START TRANSACTION READ ONLY ISOLATION LEVEL SERIALIZABLE;
 
-        SELECT username, content, time_posted
+        SELECT tweetID, username, content, time_posted
         FROM Users JOIN Tweets ON userID = posterID
         WHERE username LIKE %(search)s OR content LIKE %(search)s;
     """
@@ -141,7 +143,7 @@ def search_for_tweets(search):
     result = []
     for tweet in database.get_result_from_last_query():
         result.append(
-            Tweet(tweet.username, tweet.content, tweet.time_posted)
+            Tweet(tweet.tweetID, tweet.username, tweet.content, tweet.time_posted)
         )
     return result
 
@@ -169,7 +171,7 @@ def get_user(email):
     """
     database.execute(query, email=email)
     result = database.get_result_from_last_query(1)
-    return result.userid
+    return result.userid  # TODO(ted): This should return the user object!
 
 
 def create_user(username, password, email, age):
@@ -183,7 +185,7 @@ def create_user(username, password, email, age):
     Return nothing.
     """
 
-    hashed_password = sha256_crypt.encrypt(str(password))
+    hashed_password = sha256_crypt.encrypt(password)  # removed str(password). TODO(ted): MAKE SUTE IT STILL WORKS
 
     query = """
         START TRANSACTION READ WRITE ISOLATION LEVEL SERIALIZABLE;
@@ -253,7 +255,7 @@ def get_user_tweets(userID):
     query = """
         START TRANSACTION READ ONLY ISOLATION LEVEL SERIALIZABLE;
 
-        SELECT username, content, time_posted
+        SELECT tweetID, username, content, time_posted
         FROM   Users JOIN Tweets ON userID = posterID
         WHERE  userID = %(userID)s;
     """
@@ -261,7 +263,7 @@ def get_user_tweets(userID):
     result = []
     for tweet in database.get_result_from_last_query():
         result.append(
-            Tweet(tweet.username, tweet.content, tweet.time_posted)
+            Tweet(tweet.tweetID, tweet.username, tweet.content, tweet.time_posted)
         )
     return result
 
@@ -322,3 +324,16 @@ def get_user_name(userID):
     database.execute(query, userID=userID)
     result = database.get_result_from_last_query(1)
     return result.username
+
+
+def get_user_followers(userID):
+    query = """
+        SELECT followerID
+        FROM   Followers
+        WHERE  userID = %(userID)s;
+    """
+    database.execute(query, userID=userID)
+    result = []
+    for follower in database.get_result_from_last_query():
+        result.append(follower.followerID)
+    return result

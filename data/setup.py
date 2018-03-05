@@ -23,6 +23,9 @@ def random_date(start, end):
 if __name__ == '__main__':
 
 
+    FILE_PATH = 'data/'
+
+
     names = [
         'transportwildcat', 'wrapteal', 'listenseagull', 'peerswallow', 'admireowl', 'shrugbuzzard', 'orderoxbird',
         'requestlion', 'operatewildebeest', 'yodelplover', 'hidechamois', 'minehamster', 'scrapegoldfinch',
@@ -36,7 +39,7 @@ if __name__ == '__main__':
     words = requests.get(URL_TO_ENGLISH_WORDS).content.decode('utf-8').split()
 
 
-    with open('users_data.txt', 'w') as datafile:
+    with open(FILE_PATH + 'users_data.txt', 'w') as datafile:
         for i, name in enumerate(names):
             username = name
 
@@ -49,7 +52,7 @@ if __name__ == '__main__':
 
             datafile.write('{},{},{}\n'.format(username, email, age))
 
-    with open('tweets_data.txt', 'w') as datafile:
+    with open(FILE_PATH + 'tweets_data.txt', 'w') as datafile:
 
         d1 = datetime.strptime('2008-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
         d2 = datetime.now()
@@ -73,7 +76,7 @@ if __name__ == '__main__':
 
 
 
-    with open('followers_data.txt', 'w') as datafile:
+    with open(FILE_PATH + 'followers_data.txt', 'w') as datafile:
 
         followers = set()
 
@@ -88,7 +91,7 @@ if __name__ == '__main__':
                 datafile.write('{},{}\n'.format(a, b))
 
 
-    with open('passwords_data.txt', 'w') as datafile:
+    with open(FILE_PATH + 'passwords_data.txt', 'w') as datafile:
 
         for i, name in enumerate(names, start=1):
             password = sha256_crypt.hash(name[0:4])

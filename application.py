@@ -1,8 +1,9 @@
 """
 It's often very useful to look at other people's code to learn new and effective ways to program!
+
 But not here. This file contains some pretty wacky stuff, which shouldn't be used in
-real production code. It works for this small case, but doesn't scale well, it's hard to debug, and generally
-it's not optimal.
+real production code. It works for this small case, but doesn't scale well, is hard to debug, and generally
+is not optimal.
 """
 
 from random import choice
@@ -10,13 +11,12 @@ from random import choice
 from flask import Flask, render_template, redirect, url_for, request, flash, session
 from wtforms import Form, StringField, PasswordField, TextAreaField, validators
 
-from solutions.queries import (
+from exercise_queries import (
     get_newest_tweets, search_for_tweets, get_user, create_user, validate_login, post_tweet, get_user_tweets,
-    validate_and_perform_user_changes, get_user_name
+    validate_and_perform_user_changes, get_user_name, get_user_followers
 )
 
 app = Flask(__name__)
-user = None
 messages = [
     "Make sure to get the latest from you!",
     "There are exactly the same tweets here as last time. Predictability and consistency is gold!",
@@ -94,22 +94,18 @@ class TweetForm(Form):
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    if not user:
-        session['logged_in'] = False
-
-
     form = SearchForm(request.form)
 
     if request.method == 'POST' and form.validate():
         return redirect(url_for('tweets_search', search=form.username.data))
     else:
-        if user:
-            username = get_user_name(user)
-            tweets = get_user_tweets(user)
-            return render_template('home.html', greeting=username, form=form, tweets=chunks(tweets, 3), message=choice(messages), tweetheader='Your tweets')
+        if session['logged_in']:
+            tweets = get_user_tweets(session['userID'])
+            followers = get_user_followers(session['userID'])
+            return render_template('home.html', form=form, tweets=chunks(tweets, 3), message=choice(messages), followers=followers)
         else:
             tweets = get_newest_tweets(9)
-            return render_template('home.html', greeting='to Tweeter', form=form, tweets=chunks(tweets, 3), message='A place where you can send tweets by yourself, to yourself!', tweetheader='Newest tweets')
+            return render_template('home.html', form=form, tweets=chunks(tweets, 3), message='A place where you can send tweets by yourself, to yourself!', followers=[])
 
 
 
@@ -118,8 +114,8 @@ def tweets_search(search):
     form = TweetForm(request.form)
 
     if request.method == 'POST' and form.validate():
-        if user:
-            post_tweet(user, form.content.data)
+        if session['logged_in']:
+            post_tweet(session['userID'], form.content.data)
             flash('Your tweet has been posted!', 'success')
             return redirect(url_for('tweets_'))
         else:
@@ -127,7 +123,8 @@ def tweets_search(search):
             return redirect(url_for('login'))
 
     tweets = search_for_tweets(search)
-    return render_template('tweets.html', form=form, tweets=chunks(tweets, 3))
+    followers = get_user_followers(session['userID'])
+    return render_template('tweets.html', form=form, tweets=chunks(tweets, 3), followers=followers)
 
 
 @app.route('/tweets', methods=['GET', 'POST'])
@@ -135,15 +132,17 @@ def tweets_():
     form = TweetForm(request.form)
 
     if request.method == 'POST' and form.validate():
-        if user:
-            post_tweet(user, form.content.data)
+        if session['logged_in']:
+            post_tweet(session['userID'], form.content.data)
             flash('Your tweet has been posted!', 'success')
+            return redirect(url_for('tweets_'))
         else:
             flash('You must be logged in to post a tweet.', 'danger')
             return redirect(url_for('login'))
 
     tweets = get_newest_tweets(9)
-    return render_template('tweets.html', form=form, tweets=chunks(tweets, 3))
+    followers = get_user_followers(session['userID'])
+    return render_template('tweets.html', form=form, tweets=chunks(tweets, 3), followers=followers)
 
 
 @app.route('/contact')
@@ -175,8 +174,8 @@ def login():
 
         if result == 1:
             session['logged_in'] = True
-            global user
-            user = get_user(form.email.data)
+            session['userID'] = get_user(form.email.data)
+            session['username'] = get_user_name(session['userID'])
             flash('You were successfully logged in.', 'success')
             return redirect(url_for('home'))
         elif result == 0:
@@ -193,15 +192,15 @@ def login():
 def logout():
     flash("You've logged out.", 'success')
     session['logged_in'] = False
-    global user
-    user = None
+    session['userID'] = None
+    session['username'] = None
     return redirect(url_for('home'))
 
 
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
 
-    if not user:
+    if not session['logged_in']:
         flash('No!', 'danger')
         return redirect(url_for('home'))
 
@@ -210,7 +209,7 @@ def settings():
     if request.method == 'POST' and form.validate():
 
         result = validate_and_perform_user_changes(
-            user, form.confirm.data, form.username.data, form.email.data, form.age.data, form.password.data
+            session['userID'], form.confirm.data, form.username.data, form.email.data, form.age.data, form.password.data
         )
 
         if result:
@@ -225,6 +224,15 @@ def chunks(sequence, n):
     for i in range(0, len(sequence), n):
         yield sequence[i:i + n]
 
-if __name__ == '__main__':
+
+def run(file=None):
+
+    if file:
+        import file
+
     app.secret_key = 'some_secret'
     app.run(debug=True)
+
+
+if __name__ == '__main__':
+    run()

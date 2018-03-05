@@ -35,7 +35,7 @@ CREATE TABLE Passwords (
 
 
 
-COPY Users(username, email, age) FROM '/Users/Kleinman/PycharmProjects/database/data/users_data.txt' USING DELIMITERS ',';
-COPY Tweets(posterID, content, time_posted) FROM '/Users/Kleinman/PycharmProjects/database/data/tweets_data.txt' USING DELIMITERS ',';
-COPY Followers(userID, followerID) FROM '/Users/Kleinman/PycharmProjects/database/data/followers_data.txt' USING DELIMITERS ',';
-COPY Passwords(userID, password) FROM '/Users/Kleinman/PycharmProjects/database/data/passwords_data.txt' USING DELIMITERS ',';
+COPY Users(username, email, age) FROM 'path to users_data.txt' USING DELIMITERS ',';
+COPY Tweets(posterID, content, time_posted) FROM 'path to tweets_data.txt' USING DELIMITERS ',';
+COPY Followers(userID, followerID) FROM 'path to followers_data.txt' USING DELIMITERS ',';
+COPY Passwords(userID, password) FROM 'path to passwords_data.txt' USING DELIMITERS ',';

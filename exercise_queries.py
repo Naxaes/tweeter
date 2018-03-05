@@ -7,7 +7,7 @@ from psycopg2.extras import NamedTupleCursor
 from passlib.hash import sha256_crypt
 
 
-Tweet = namedtuple('Tweet', 'poster, content, posted')
+Tweet = namedtuple('Tweet', 'username, content, time_posted')
 User  = namedtuple('User',  'username, email, age')
 
 connection = connect(dbname='tweeter', user='postgres', password='', host='localhost', port=5432)
@@ -18,8 +18,8 @@ def get_newest_tweets(x):
     """
     Fetch x amount of the newest tweets.
 
-    The values in each tuple should be put in a Tweet object (listed above), which has the attributes poster,
-    content and posted, where poster should be the username (instead of the id).
+    The values in each tuple should be put in a Tweet object (listed above), which has the attributes username (of
+    the user who posted the tweet), content and time_posted.
 
     Return all tweets in a list.
 
@@ -27,29 +27,20 @@ def get_newest_tweets(x):
 
         list_of_tweets = []
         for result in result_from_query:
-            tweet = Tweet(result.username, result.content, result.posted)
+            tweet = Tweet(result.username, result.content, result.time_posted)
             list_of_tweets.append(tweet)
 
         return list_of_tweets
     """
-    query = """
-        SELECT username, content, posted 
-        FROM   Users JOIN Tweets ON userID = poster;
-        """
-    cursor.execute(query)
-    result = []
-    for tuple in cursor.fetchall():
-        tweet = Tweet(tuple.username, tuple.content, tuple.posted)
-        result.append(tweet)
-    return result
+    return []
 
 
 def search_for_tweets(x):
     """
-    Search for all tweets that contains x in the content or poster.
+    Search for all tweets that contains x in the content or username of the tweet.
 
-    The values in each tuple should be put in a Tweet object (listed above), which has the attributes poster,
-    content and posted, where poster should be the username (instead of the id).
+    The values in each tuple should be put in a Tweet object (listed above), which has the attributes username (of
+    the user who posted the tweet), content and time_posted.
 
     Return all tweets in a list.
 
@@ -57,7 +48,7 @@ def search_for_tweets(x):
 
         list_of_tweets = []
         for result in result_from_query:
-            tweet = Tweet(result.username, result.content, result.posted)
+            tweet = Tweet(result.username, result.content, result.time_posted)
             list_of_tweets.append(tweet)
 
         return list_of_tweets
@@ -111,8 +102,8 @@ def post_tweet(userID, content):
     """
     Save the a tweet in the database.
 
-    The Tweets table stores the poster, content and posted. Poster should be the userID for the user with the
-    corresponding email, and posted should be the current time.
+    The Tweets table stores the posterID, content and time_posted. Poster should be the userID for the user with the
+    corresponding email, and time_posted should be the current time.
 
     To get the current time (and properly formatted) you can use the function:
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -124,6 +115,23 @@ def post_tweet(userID, content):
 
 
 def get_user_tweets(userID):
+    """
+    Fetch all the users tweets.
+
+    The values in each tuple should be put in a Tweet object (listed above), which has the attributes posterID,
+    content and time_posted, where posterID should be the username (instead of the id).
+
+    Return all tweets in a list.
+
+    Example:
+
+        list_of_tweets = []
+        for result in result_from_query:
+            tweet = Tweet(result.username, result.content, result.time_posted)
+            list_of_tweets.append(tweet)
+
+        return list_of_tweets
+    """
     return []
 
 
@@ -133,3 +141,12 @@ def validate_and_perform_user_changes(userID, confirmation, username=None, email
 
 def get_user_name(userID):
     return ''
+
+
+def get_user_followers(userID):
+    return ''
+
+
+if __name__ == '__main__':
+    import application
+    application.run(__file__)
