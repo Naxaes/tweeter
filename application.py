@@ -12,8 +12,9 @@ from flask import Flask, render_template, redirect, url_for, request, flash, ses
 from wtforms import Form, StringField, PasswordField, TextAreaField, validators
 
 from exercise_queries import (
-    get_newest_tweets, search_for_tweets, get_user, create_user, validate_login, post_tweet, get_user_tweets,
-    validate_and_perform_user_changes, get_user_name, get_user_followers
+    get_newest_tweets, search_for_tweets, get_user, create_user, validate_login, post_tweet,
+    validate_and_perform_user_changes, get_user_by_ID, get_user_followers, get_followers_tweets, add_follower,
+    remove_follower, remove_tweet
 )
 
 app = Flask(__name__)
@@ -50,7 +51,7 @@ class RegisterForm(Form):
 class ChangeInfoForm(Form):
     username = StringField(
         'Change username ',
-        validators=[validators.length(min=4, max=100)]
+        validators=[validators.optional(), validators.length(min=4, max=100)]
     )
     email = StringField(
         'Change email ', validators=[]
@@ -96,16 +97,42 @@ class TweetForm(Form):
 def home():
     form = SearchForm(request.form)
 
-    if request.method == 'POST' and form.validate():
-        return redirect(url_for('tweets_search', search=form.username.data))
+    if request.method == 'POST':
+
+        follow = request.form.get('follow')
+        unfollow = request.form.get('unfollow')
+        delete = request.form.get('delete')
+
+        if follow:
+            if session['logged_in']:
+                if not add_follower(session['user'][0], follow):
+                    flash('Something went wrong!', 'danger')
+            else:
+                flash('You must be logged in to follow a user.', 'danger')
+                return redirect(url_for('login'))
+        elif unfollow:
+            if session['logged_in']:
+                if not remove_follower(session['user'][0], unfollow):
+                    flash('Something went wrong!', 'danger')
+            else:
+                flash('You must be logged in to unfollow a user.', 'danger')
+                return redirect(url_for('login'))
+        elif delete:
+            if not remove_tweet(delete):
+                flash('Something went wrong!', 'danger')
+            flash('Tweet deleted.', 'success')
+
+        elif form.validate():
+            return redirect(url_for('tweets_search', search=form.username.data))
+
+    if session['logged_in']:
+        # tweets = get_user_tweets(session['user'][0])
+        tweets = get_followers_tweets(session['user'][0])
+        followers = get_user_followers(session['user'][0])
+        return render_template('home.html', form=form, tweets=chunks(tweets, 3), message=choice(messages), followers=followers)
     else:
-        if session['logged_in']:
-            tweets = get_user_tweets(session['userID'])
-            followers = get_user_followers(session['userID'])
-            return render_template('home.html', form=form, tweets=chunks(tweets, 3), message=choice(messages), followers=followers)
-        else:
-            tweets = get_newest_tweets(9)
-            return render_template('home.html', form=form, tweets=chunks(tweets, 3), message='A place where you can send tweets by yourself, to yourself!', followers=[])
+        tweets = get_newest_tweets(9)
+        return render_template('home.html', form=form, tweets=chunks(tweets, 3), message='A place where you can send tweets by yourself, to yourself!', followers=[])
 
 
 
@@ -113,17 +140,46 @@ def home():
 def tweets_search(search):
     form = TweetForm(request.form)
 
-    if request.method == 'POST' and form.validate():
-        if session['logged_in']:
-            post_tweet(session['userID'], form.content.data)
-            flash('Your tweet has been posted!', 'success')
-            return redirect(url_for('tweets_'))
-        else:
-            flash('You must be logged in to post a tweet.', 'danger')
-            return redirect(url_for('login'))
+    if request.method == 'POST':
+
+        follow = request.form.get('follow')
+        unfollow = request.form.get('unfollow')
+        delete = request.form.get('delete')
+
+        if follow:
+            if session['logged_in']:
+                if not add_follower(session['user'][0], follow):
+                    flash('Something went wrong!', 'danger')
+            else:
+                flash('You must be logged in to follow a user.', 'danger')
+                return redirect(url_for('login'))
+        elif unfollow:
+            if session['logged_in']:
+                if not remove_follower(session['user'][0], unfollow):
+                    flash('Something went wrong!', 'danger')
+            else:
+                flash('You must be logged in to unfollow a user.', 'danger')
+                return redirect(url_for('login'))
+        elif delete:
+            if not remove_tweet(delete):
+                flash('Something went wrong!', 'danger')
+            flash('Tweet deleted.', 'success')
+        elif form.validate():
+            if session['logged_in']:
+                if post_tweet(session['user'][0], form.content.data):
+                    flash('Your tweet has been posted!', 'success')
+                    return redirect(url_for('tweets_'))
+                else:
+                    flash('Something went wrong!', 'danger')
+            else:
+                flash('You must be logged in to post a tweet.', 'danger')
+                return redirect(url_for('login'))
 
     tweets = search_for_tweets(search)
-    followers = get_user_followers(session['userID'])
+    if session['logged_in']:
+        followers = get_user_followers(session['user'][0])
+    else:
+        followers = []
     return render_template('tweets.html', form=form, tweets=chunks(tweets, 3), followers=followers)
 
 
@@ -131,17 +187,46 @@ def tweets_search(search):
 def tweets_():
     form = TweetForm(request.form)
 
-    if request.method == 'POST' and form.validate():
-        if session['logged_in']:
-            post_tweet(session['userID'], form.content.data)
-            flash('Your tweet has been posted!', 'success')
-            return redirect(url_for('tweets_'))
-        else:
-            flash('You must be logged in to post a tweet.', 'danger')
-            return redirect(url_for('login'))
+    if request.method == 'POST':
+
+        follow = request.form.get('follow')
+        unfollow = request.form.get('unfollow')
+        delete = request.form.get('delete')
+
+        if follow:
+            if session['logged_in']:
+                if not add_follower(session['user'][0], follow):
+                    flash('Something went wrong!', 'danger')
+            else:
+                flash('You must be logged in to follow a user.', 'danger')
+                return redirect(url_for('login'))
+        elif unfollow:
+            if session['logged_in']:
+                if not remove_follower(session['user'][0], unfollow):
+                    flash('Something went wrong!', 'danger')
+            else:
+                flash('You must be logged in to unfollow a user.', 'danger')
+                return redirect(url_for('login'))
+        elif delete:
+            if not remove_tweet(delete):
+                flash('Something went wrong!', 'danger')
+            flash('Tweet deleted.', 'success')
+        elif form.validate():
+            if session['logged_in']:
+                if post_tweet(session['user'][0], form.content.data):
+                    flash('Your tweet has been posted!', 'success')
+                    return redirect(url_for('tweets_'))
+                else:
+                    flash('Something went wrong!', 'danger')
+            else:
+                flash('You must be logged in to post a tweet.', 'danger')
+                return redirect(url_for('login'))
 
     tweets = get_newest_tweets(9)
-    followers = get_user_followers(session['userID'])
+    if session['logged_in']:
+        followers = get_user_followers(session['user'][0])
+    else:
+        followers = []
     return render_template('tweets.html', form=form, tweets=chunks(tweets, 3), followers=followers)
 
 
@@ -156,9 +241,11 @@ def register():
     form = RegisterForm(request.form)
 
     if request.method == 'POST' and form.validate():
-        create_user(form.username.data, form.password.data, form.email.data, form.age.data)
-        flash('Welcome! Try to log in.', 'success')
-        return redirect(url_for('login'))
+        if create_user(form.username.data, form.password.data, form.email.data, form.age.data):
+            flash('Welcome! Try to log in.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Something went wrong!', 'danger')
 
     return render_template('register.html', form=form)
 
@@ -173,9 +260,8 @@ def login():
         result = validate_login(form.email.data, form.password.data)
 
         if result == 1:
+            session['user'] = get_user(form.email.data)
             session['logged_in'] = True
-            session['userID'] = get_user(form.email.data)
-            session['username'] = get_user_name(session['userID'])
             flash('You were successfully logged in.', 'success')
             return redirect(url_for('home'))
         elif result == 0:
@@ -192,8 +278,7 @@ def login():
 def logout():
     flash("You've logged out.", 'success')
     session['logged_in'] = False
-    session['userID'] = None
-    session['username'] = None
+    session['user'] = None
     return redirect(url_for('home'))
 
 
@@ -209,10 +294,11 @@ def settings():
     if request.method == 'POST' and form.validate():
 
         result = validate_and_perform_user_changes(
-            session['userID'], form.confirm.data, form.username.data, form.email.data, form.age.data, form.password.data
+            session['user'][0], form.confirm.data, form.username.data, form.email.data, form.age.data, form.password.data
         )
 
         if result:
+            session['user'] = get_user_by_ID(session['user'][0])
             flash('Changed made!', 'success')
         else:
             flash('Wrong password!', 'danger')
@@ -225,14 +311,6 @@ def chunks(sequence, n):
         yield sequence[i:i + n]
 
 
-def run(file=None):
-
-    if file:
-        import file
-
+if __name__ == '__main__':
     app.secret_key = 'some_secret'
     app.run(debug=True)
-
-
-if __name__ == '__main__':
-    run()

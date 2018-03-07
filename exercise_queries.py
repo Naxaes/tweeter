@@ -7,146 +7,255 @@ from psycopg2.extras import NamedTupleCursor
 from passlib.hash import sha256_crypt
 
 
-Tweet = namedtuple('Tweet', 'username, content, time_posted')
-User  = namedtuple('User',  'username, email, age')
 
-connection = connect(dbname='tweeter', user='postgres', password='', host='localhost', port=5432)
-cursor = connection.cursor(cursor_factory=NamedTupleCursor)
-
-
-def get_newest_tweets(x):
+def get_newest_tweets(number):
     """
-    Fetch x amount of the newest tweets.
+    Fetch x amount of tweets ordered by time_posted (descending order).
 
-    The values in each tuple should be put in a Tweet object (listed above), which has the attributes username (of
-    the user who posted the tweet), content and time_posted.
+    The values in each tuple should be:
+        tweetID, posterID, username, content, time_posted
 
-    Return all tweets in a list.
+    Return:
+         all tuples in a list.
 
     Example:
 
-        list_of_tweets = []
-        for result in result_from_query:
-            tweet = Tweet(result.username, result.content, result.time_posted)
-            list_of_tweets.append(tweet)
+        all_tuples = []
+        for tuple in get_tuples_from_query():
+            all_tuples.append(tuple)
 
-        return list_of_tweets
+        return all_tuples
+
+    Hardness:
+        2
     """
     return []
 
 
-def search_for_tweets(x):
+def search_for_tweets(search):
     """
-    Search for all tweets that contains x in the content or username of the tweet.
+    Fetch all tweets that has the search string in the content or in the username.
 
-    The values in each tuple should be put in a Tweet object (listed above), which has the attributes username (of
-    the user who posted the tweet), content and time_posted.
+    The values in each tuple should be:
+        tweetID, posterID, username, content, time_posted
 
-    Return all tweets in a list.
+    Return:
+         all tuples in a list.
 
     Example:
 
-        list_of_tweets = []
-        for result in result_from_query:
-            tweet = Tweet(result.username, result.content, result.time_posted)
-            list_of_tweets.append(tweet)
+        all_tuples = []
+        for tuple in get_tuples_from_query():
+            all_tuples.append(tuple)
 
-        return list_of_tweets
+        return all_tuples
+
+
+    Hardness:
+        3
+    """
+    return []
+
+
+def get_followers_tweets(userID):
+    """
+    Fetch all tweets that are posted by the user's followers.
+
+    The values in each tuple should be:
+        tweetID, posterID, username, content, time_posted
+
+    Where username is the username of the follower, not the user.
+
+    Return:
+         all tuples in a list.
+
+    Example:
+
+        all_tuples = []
+        for tuple in get_tuples_from_query():
+            all_tuples.append(tuple)
+
+        return all_tuples
+
+    Hardness:
+        5
     """
     return []
 
 
 def get_user(email):
     """
-    Return the user with the corresponding email.
+    Fetch the user with the email.
 
-    The values in the tuple should be put in a User object (listed above), which has the attributes username,
-    email and age.
+    The values in each tuple should be:
+        userID, username, email, age
 
-    Return just the user object.
+    Return:
+         one tuple.
 
     Example:
 
-        result = result_from_query
-        user = User(result.username, result.email, result.age)
-        return user
+        tuple = get_tuple_from_query():
+        return tuple
+
+    Hardness:
+        1
     """
-    return User('', '', 0)
+    return ()
 
 
 def create_user(username, password, email, age):
     """
     Add a new user to the database.
 
-    Insert the username, email and age in the Users table, and insert the password in the Passwords table. Remember
-    that the primary key in the Passwords table is the UserID (not username) which gets auto-generated when the user
-    is inserted in the Users table.
+    Insert the username, email and age in the Users table, and insert the password in the Passwords table.
 
-    Return nothing.
+    Notice:
+        1. The userID is auto-generated.
+        2. The password should be hashed and salted.
+
+    Return:
+         True if user was added, False otherwise.
+
+    Hardness:
+        5
     """
-    return None
+    return False
 
 
 def validate_login(email, password):
     """
     Make sure that the email and password match for an user.
 
-    Return -1 if the email is wrong.
-    Return 0  if the password is wrong.
-    Return 1  if they both are correct.
+    Notice:
+        1. The password in the database is hashed and salted, while the password given is not.
+
+    Return:
+       -1 if the email is wrong.
+        0 if the password is wrong.
+        1 if they both are correct.
+
+    Hardness:
+        3
     """
     return -1
-
 
 def post_tweet(userID, content):
     """
     Save the a tweet in the database.
 
-    The Tweets table stores the posterID, content and time_posted. Poster should be the userID for the user with the
-    corresponding email, and time_posted should be the current time.
 
-    To get the current time (and properly formatted) you can use the function:
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    Notice:
+        1. userID should be saved as posterID.
+        2. To get the current time (and properly formatted) you can use the function:
+              current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+    Return:
+         True if tweet was posted, False otherwise.
 
-    Return nothing.
+    Hardness:
+        2
     """
-    return None
+    return False
 
+def get_user_tweets(userID):  # TODO(ted): Not used!
+    """"""
 
-def get_user_tweets(userID):
+def validate_and_perform_user_changes(userID, password_confirmation, username=None, email=None, age=None,
+                                      password=None):
     """
-    Fetch all the users tweets.
+    Update the user's attributes.
 
-    The values in each tuple should be put in a Tweet object (listed above), which has the attributes posterID,
-    content and time_posted, where posterID should be the username (instead of the id).
+    Notice:
+        1. If the parameter has value None, then it shouldn't be changed.
+        2. The password in the database is hashed and salted, while the password_confirmation given is not.
+        3. The parameter password is the new password the user wants to change to. It should be hashed and salted.
 
-    Return all tweets in a list.
+    Return:
+         True if password is correct, False otherwise.
+
+    Hardness:
+        3
+    """
+    return False
+
+
+def get_user_by_ID(userID):
+    """
+    Fetch the user with the userID.
+
+    The values in each tuple should be:
+        userID, username, email, age
+
+    Return:
+         one tuple.
 
     Example:
 
-        list_of_tweets = []
-        for result in result_from_query:
-            tweet = Tweet(result.username, result.content, result.time_posted)
-            list_of_tweets.append(tweet)
+        tuple = get_tuple_from_query():
+        return tuple
 
-        return list_of_tweets
+    Hardness:
+        1
+    """
+    return ()
+
+
+def get_user_followers(userID):
+    """
+    Fetch the followers of the user with the userID.
+
+    The values in each tuple should be:
+        followerID
+
+    Return:
+         one tuple.
+
+    Example:
+        all_tuples = []
+        for tuple in get_tuples_from_query():
+            all_tuples.append(tuple)
+        return all_tuples
+
+    Hardness:
+        1
     """
     return []
 
 
-def validate_and_perform_user_changes(userID, confirmation, username=None, email=None, age=None, password=None):
+def add_follower(userID, followerID):
+    """
+    Add
+
+    Return:
+         Nothing
+
+    Hardness:
+        1
+    """
     return False
 
 
-def get_user_name(userID):
-    return ''
+def remove_follower(userID, followerID):
+    """
+    Add
 
+    Return:
+         True if follower was removed, False otherwise.
 
-def get_user_followers(userID):
-    return ''
+    Hardness:
+        1
+    """
+    return False
 
+def remove_tweet(tweetID):
+    """
+    Add
 
-if __name__ == '__main__':
-    import application
-    application.run(__file__)
+    Return:
+         True if tweet was removed, False otherwise.
+
+    Hardness:
+        1
+    """
+    return False

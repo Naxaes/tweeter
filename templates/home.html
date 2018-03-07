@@ -4,9 +4,9 @@
 
     <div class="jumbotron text-center">
         {% if session.logged_in %}
-            <h1>Welcome to Tweeter!</h1>
+            <h1>Welcome {{ session.user[1] }}!</h1>
         {% else %}
-            <h1>Welcome {{ session.username }}!</h1>
+            <h1>Welcome to Tweeter!</h1>
         {% endif %}
         <p class="lead">{{ message }}</p>
     </div>
@@ -22,7 +22,7 @@
     <hr>
 
     {% if session.logged_in %}
-        <h1>Your tweets</h1>
+        <h1>Your followers tweets</h1>
     {% else %}
         <h1>Newest tweets</h1>
     {% endif %}

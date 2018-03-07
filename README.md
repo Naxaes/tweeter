@@ -1,0 +1,1 @@
+Attributes from queries are always lowercase.

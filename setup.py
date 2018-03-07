@@ -1,6 +1,6 @@
 """
 Run this file to install all libraries needed to run the application, and to create data
-files. You'll need access to internet in order to run this file properly.
+files. You'll need access to internet in order to run this file successfully.
 
 
 """
@@ -10,7 +10,7 @@ from random import random, choice
 from random import randrange
 from datetime import datetime, timedelta
 from passlib.hash import sha256_crypt
-
+import os
 
 LIBRARIES = [
     'flask',
@@ -21,12 +21,13 @@ LIBRARIES = [
 
 URL_TO_ENGLISH_WORDS = 'https://raw.githubusercontent.com/dwyl/english-words/master/words.txt'
 
-FILE_PATH = 'data/'
-USER_DATA = FILE_PATH + 'users_data.txt'
-TWEET_DATA = FILE_PATH + 'tweets_data.txt'
-FOLLOWER_DATA = FILE_PATH + 'followers_data.txt'
-PASSWORD_DATA = FILE_PATH + 'passwords_data.txt'
-SQL_CREATE_FILE = FILE_PATH + 'create.sql'
+CURRENT_DIRECTORY = os.getcwd()
+DATA_PATH  = os.path.join(CURRENT_DIRECTORY, 'data')
+USER_DATA  = os.path.join(DATA_PATH, 'users_data.txt')
+TWEET_DATA = os.path.join(DATA_PATH, 'tweets_data.txt')
+FOLLOWER_DATA   = os.path.join(DATA_PATH, 'followers_data.txt')
+PASSWORD_DATA   = os.path.join(DATA_PATH, 'passwords_data.txt')
+SQL_CREATE_FILE = os.path.join(DATA_PATH, 'create.sql')
 
 
 if __name__ == '__main__':
@@ -49,6 +50,9 @@ if __name__ == '__main__':
     ]
     domains = ['@hotmail.com', '@kth.se', '@gmail.com', '@msn.com']
     words = requests.get(URL_TO_ENGLISH_WORDS).content.decode('utf-8').split()
+
+
+    os.mkdir(DATA_PATH)
 
     with open(USER_DATA, 'w') as datafile:
         for i, name in enumerate(names):
@@ -144,10 +148,10 @@ CREATE TABLE Passwords (
 
 
 
-COPY Users(username, email, age) FROM {userdata} USING DELIMITERS ',';
-COPY Tweets(posterID, content, time_posted) FROM {tweetdata} USING DELIMITERS ',';
-COPY Followers(userID, followerID) FROM {followerdata} USING DELIMITERS ',';
-COPY Passwords(userID, password) FROM {passworddata} USING DELIMITERS ',';
+COPY Users(username, email, age) FROM '{userdata}' USING DELIMITERS ',';
+COPY Tweets(posterID, content, time_posted) FROM '{tweetdata}' USING DELIMITERS ',';
+COPY Followers(userID, followerID) FROM '{followerdata}' USING DELIMITERS ',';
+COPY Passwords(userID, password) FROM '{passworddata}' USING DELIMITERS ',';
 """.format(userdata=USER_DATA, tweetdata=TWEET_DATA, followerdata=FOLLOWER_DATA, passworddata=PASSWORD_DATA)
 
     with open(SQL_CREATE_FILE, 'w') as datafile:
