@@ -20,7 +20,3 @@ You'll also need four tables in your database:
 
 
 You can download the libraries and create the tables manually, or by running `setup.py`. The file will download the libraries and create an `create.sql` file with all tables. It'll also create 4 CSV-files with compatible data for each table.
-
-
-## Remarks
-* Attributes from queries are always lowercase.
