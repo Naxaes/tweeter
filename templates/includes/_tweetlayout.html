@@ -9,7 +9,7 @@
                     <div class="col-xs-8"> <footer>{{ tweet.time_posted }}</footer> </div>
                     <div class="col-xs-2">
                         <form action="" method="POST" >
-                            {% if tweet.posterid == session['user'][0] %}
+                            {% if session.get('user') and tweet.posterid == session['user'][0] %}
                                 <button class="btn btn-warning" type="submit" name="delete" value={{ tweet.tweetid }}>
                                     <span class="glyphicon glyphicon-thumbs-down"></span> Delete
                                 </button>

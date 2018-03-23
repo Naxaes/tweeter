@@ -99,19 +99,19 @@ def home():
 
     if request.method == 'POST':
 
-        follow = request.form.get('follow')
+        follow   = request.form.get('follow')
         unfollow = request.form.get('unfollow')
-        delete = request.form.get('delete')
+        delete   = request.form.get('delete')
 
         if follow:
-            if session['logged_in']:
+            if session.get('logged_in'):
                 if not add_follower(session['user'][0], follow):
                     flash('Something went wrong!', 'danger')
             else:
                 flash('You must be logged in to follow a user.', 'danger')
                 return redirect(url_for('login'))
         elif unfollow:
-            if session['logged_in']:
+            if session.get('logged_in'):
                 if not remove_follower(session['user'][0], unfollow):
                     flash('Something went wrong!', 'danger')
             else:
@@ -125,7 +125,7 @@ def home():
         elif form.validate():
             return redirect(url_for('tweets_search', search=form.username.data))
 
-    if session['logged_in']:
+    if session.get('logged_in'):
         # tweets = get_user_tweets(session['user'][0])
         tweets = get_followers_tweets(session['user'][0])
         followers = get_user_followers(session['user'][0])
@@ -147,14 +147,14 @@ def tweets_search(search):
         delete = request.form.get('delete')
 
         if follow:
-            if session['logged_in']:
+            if session.get('logged_in'):
                 if not add_follower(session['user'][0], follow):
                     flash('Something went wrong!', 'danger')
             else:
                 flash('You must be logged in to follow a user.', 'danger')
                 return redirect(url_for('login'))
         elif unfollow:
-            if session['logged_in']:
+            if session.get('logged_in'):
                 if not remove_follower(session['user'][0], unfollow):
                     flash('Something went wrong!', 'danger')
             else:
@@ -165,7 +165,7 @@ def tweets_search(search):
                 flash('Something went wrong!', 'danger')
             flash('Tweet deleted.', 'success')
         elif form.validate():
-            if session['logged_in']:
+            if session.get('logged_in'):
                 if post_tweet(session['user'][0], form.content.data):
                     flash('Your tweet has been posted!', 'success')
                     return redirect(url_for('tweets_'))
@@ -176,7 +176,7 @@ def tweets_search(search):
                 return redirect(url_for('login'))
 
     tweets = search_for_tweets(search)
-    if session['logged_in']:
+    if session.get('logged_in'):
         followers = get_user_followers(session['user'][0])
     else:
         followers = []
@@ -194,14 +194,14 @@ def tweets_():
         delete = request.form.get('delete')
 
         if follow:
-            if session['logged_in']:
+            if session.get('logged_in'):
                 if not add_follower(session['user'][0], follow):
                     flash('Something went wrong!', 'danger')
             else:
                 flash('You must be logged in to follow a user.', 'danger')
                 return redirect(url_for('login'))
         elif unfollow:
-            if session['logged_in']:
+            if session.get('logged_in'):
                 if not remove_follower(session['user'][0], unfollow):
                     flash('Something went wrong!', 'danger')
             else:
@@ -212,7 +212,7 @@ def tweets_():
                 flash('Something went wrong!', 'danger')
             flash('Tweet deleted.', 'success')
         elif form.validate():
-            if session['logged_in']:
+            if session.get('logged_in'):
                 if post_tweet(session['user'][0], form.content.data):
                     flash('Your tweet has been posted!', 'success')
                     return redirect(url_for('tweets_'))
@@ -223,7 +223,7 @@ def tweets_():
                 return redirect(url_for('login'))
 
     tweets = get_newest_tweets(9)
-    if session['logged_in']:
+    if session.get('logged_in'):
         followers = get_user_followers(session['user'][0])
     else:
         followers = []
@@ -285,7 +285,7 @@ def logout():
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
 
-    if not session['logged_in']:
+    if not session.get('logged_in', False):
         flash('No!', 'danger')
         return redirect(url_for('home'))
 

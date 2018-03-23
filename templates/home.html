@@ -3,7 +3,7 @@
 {% block body %}
 
     <div class="jumbotron text-center">
-        {% if session.logged_in %}
+        {% if session.get('logged_in') %}
             <h1>Welcome {{ session.user[1] }}!</h1>
         {% else %}
             <h1>Welcome to Tweeter!</h1>
@@ -21,7 +21,7 @@
 
     <hr>
 
-    {% if session.logged_in %}
+    {% if session.get('logged_in') %}
         <h1>Your followers tweets</h1>
     {% else %}
         <h1>Newest tweets</h1>

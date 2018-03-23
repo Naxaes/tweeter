@@ -9,7 +9,7 @@ from passlib.hash import sha256_crypt
 
 class Database:
 
-    def __init__(self, dbname, user, password='', host='localhost', port=5432):
+    def __init__(self, dbname, user='', password='', host='localhost', port=5432):
 
         self.arguments = {
             'dbname':   dbname,
@@ -70,7 +70,7 @@ class Database:
             return ()
 
 
-database = Database(dbname='tweeter', user='postgres')
+database = Database(dbname='tweeter', user='postgres', password='F#Qtg5455', port=5433)
 
 
 
