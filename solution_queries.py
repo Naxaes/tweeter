@@ -1,5 +1,4 @@
 import sys
-from collections import namedtuple
 from datetime import datetime
 
 from psycopg2 import connect, Error
