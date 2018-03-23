@@ -35,4 +35,4 @@ If you want to run the full-featured version, you'll have to start the server. T
 
 Another possible solution is to change the arguments to the database class in the file _solution_queries.py_, as they are hardcoded to work for those who follow the course. Change these values to the default values given to you when you run psql (those in square brackets below):
 
-![alt text](https://imgur.com/54Dq2XV)
+![image](https://imgur.com/54Dq2XV)
