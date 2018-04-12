@@ -40,3 +40,7 @@ Another possible solution is to change the arguments to the database class in th
 * **Another error pops up**
 
 The application is written and tested with Python 3 in mind. If you're using Python 2 it's possible that it doesn't work. If that's the case, please write a comment on the Ludu course explaining the error and I'll try to make it compatible with Python 2.
+
+## Notice
+
+This application is not written according to the best practices. Please don't take anything in the code as an example of proper use! For example, the code violates [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself).
