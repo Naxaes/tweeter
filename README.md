@@ -38,4 +38,5 @@ Another possible solution is to change the arguments to the database class in th
 ![image](https://imgur.com/54Dq2XV.png)
 
 * **Another error pops up**
+
 The application is written and tested with Python 3 in mind. If you're using Python 2 it's possible that it doesn't work. If that's the case, please write a comment on the Ludu course explaining the error and I'll try to make it compatible with Python 2.
