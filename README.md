@@ -5,7 +5,7 @@ This is a project for the SQL-course at [Ludu.co](https://www.ludu.co/course/lea
 
 ## Setup
 
-The application uses python 3 and 4 external libraries:
+The application uses python 3, and 4 external libraries:
 * **flask** - For setting up the server.
 * **wtforms** - For easily creating forms.
 * **psycopg2** - For inteacting with our database.
@@ -36,3 +36,6 @@ If you want to run the full-featured version, you'll have to start the server. T
 Another possible solution is to change the arguments to the database class in the file _solution_queries.py_, as they are hardcoded to work for those who follow the course. Change these values to the default values given to you when you run psql (those in square brackets below):
 
 ![image](https://imgur.com/54Dq2XV.png)
+
+* **Another error pops up**
+The application is written and tested with Python 3 in mind. If you're using Python 2 it's possible that it doesn't work. If that's the case, please write a comment on the Ludu course explaining the error and I'll try to make it compatible with Python 2.
