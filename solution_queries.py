@@ -95,8 +95,6 @@ def get_newest_tweets(number):
         2
     """
     query = """
-        START TRANSACTION READ ONLY ISOLATION LEVEL SERIALIZABLE;
-
         SELECT tweetID, posterID, username, content, time_posted
         FROM   Users JOIN Tweets ON userID = posterID
         ORDER BY time_posted DESC
@@ -133,8 +131,6 @@ def search_for_tweets(search):
         3
     """
     query = """
-        START TRANSACTION READ ONLY ISOLATION LEVEL SERIALIZABLE;
-
         SELECT tweetID, posterID, username, content, time_posted
         FROM Users JOIN Tweets ON userID = posterID
         WHERE username LIKE %(search)s OR content LIKE %(search)s;
@@ -169,9 +165,7 @@ def get_followers_tweets(userID):
     Hardness:
         5
     """
-    query = """
-        START TRANSACTION READ ONLY ISOLATION LEVEL SERIALIZABLE;
-        
+    query = """        
         WITH UserFollowers AS (
             SELECT followerID 
             FROM Users JOIN Followers ON Users.userID = Followers.userID
@@ -207,9 +201,7 @@ def get_user(email):
     Hardness:
         1
     """
-    query = """
-        START TRANSACTION READ ONLY ISOLATION LEVEL SERIALIZABLE;
-    
+    query = """    
         SELECT userID, username, email, age
         FROM Users 
         WHERE email = %(email)s;
@@ -241,9 +233,9 @@ def create_user(username, password, email, age):
         START TRANSACTION READ WRITE ISOLATION LEVEL SERIALIZABLE;
         
         INSERT INTO Users (username, email, age) VALUES (%(username)s, %(email)s, %(age)s);
-        INSERT INTO Passwords (userID, password) VALUES
-            ((SELECT userID FROM Users WHERE email = %(email)s), %(password)s);
-        COMMIT TRANSACTION;
+        INSERT INTO Passwords (userID, password) VALUES (
+            (SELECT userID FROM Users WHERE email = %(email)s), %(password)s
+        );
     """
 
     success = database.execute(query, username=username, email=email, age=age, password=hashed_password)
@@ -265,9 +257,7 @@ def validate_login(email, password):
     Hardness:
         3
     """
-    query = """
-        START TRANSACTION READ ONLY ISOLATION LEVEL SERIALIZABLE;
-    
+    query = """    
         SELECT password
         FROM   Passwords
         WHERE  userID = (SELECT userID FROM Users WHERE email = %(email)s);
@@ -301,9 +291,7 @@ def post_tweet(userID, content):
     Hardness:
         2
     """
-    query = """
-        START TRANSACTION READ WRITE ISOLATION LEVEL SERIALIZABLE;
-    
+    query = """    
         INSERT INTO Tweets (posterID, content, time_posted) 
         VALUES (%(userID)s, %(content)s, %(time_posted)s);
     """
@@ -311,10 +299,8 @@ def post_tweet(userID, content):
     return success
 
 
-def get_user_tweets(userID):  # TODO(ted): Not used!
+def get_user_tweets(userID):  # TODO(ted): This is not used, but we'll leave it here for now.
     query = """
-        START TRANSACTION READ ONLY ISOLATION LEVEL SERIALIZABLE;
-
         SELECT tweetID, posterID, username, content, time_posted
         FROM   Users JOIN Tweets ON userID = posterID
         WHERE  userID = %(userID)s;
@@ -458,8 +444,6 @@ def add_follower(userID, followerID):
         1
     """
     query = """
-        START TRANSACTION READ WRITE ISOLATION LEVEL SERIALIZABLE;
-
         INSERT INTO Followers (userID, followerID) 
         VALUES (%(userID)s, %(followerID)s);
     """
@@ -477,8 +461,6 @@ def remove_follower(userID, followerID):
         1
     """
     query = """
-        START TRANSACTION READ WRITE ISOLATION LEVEL SERIALIZABLE;
-
         DELETE FROM Followers 
         WHERE userID = %(userID)s AND followerID = %(followerID)s;
     """
@@ -497,8 +479,6 @@ def remove_tweet(tweetID):
         1
     """
     query = """
-        START TRANSACTION READ WRITE ISOLATION LEVEL SERIALIZABLE;
-
         DELETE FROM Tweets 
         WHERE tweetID = %(tweetID)s;
     """
