@@ -43,4 +43,9 @@ The application is written and tested with Python 3 in mind. If you're using Pyt
 
 ## Notice
 
-This application is not written according to the best practices. Please don't take anything in the code as an example of proper use! For example, the code violates [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself).
+This application is written as a simple project for learning to use a database. It is **not** written according to the best practices. Please don't take anything in the code as an example of proper use! For example, the code violates [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) among others.
+
+
+## Author
+
+The project is written by Ted Klein Bergman, a KTH student in Medieteknik. He's a T.A. in Database and Software Development and passionated about programming. He's also not afraid of constructive criticism, so don't be afraid to point out errors in the Ludu course.
