@@ -158,9 +158,6 @@ def post_tweet(userID, content):
     """
     return False
 
-def get_user_tweets(userID):  # TODO(ted): Not used!
-    """"""
-
 def validate_and_perform_user_changes(userID, password_confirmation, username=None, email=None, age=None,
                                       password=None):
     """
