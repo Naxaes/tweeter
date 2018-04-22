@@ -148,10 +148,10 @@ CREATE TABLE Passwords (
 
 
 
-COPY Users(username, email, age) FROM '{userdata}' USING DELIMITERS ',';
-COPY Tweets(posterID, content, time_posted) FROM '{tweetdata}' USING DELIMITERS ',';
-COPY Followers(userID, followerID) FROM '{followerdata}' USING DELIMITERS ',';
-COPY Passwords(userID, password) FROM '{passworddata}' USING DELIMITERS ',';
+\copy Users(username, email, age) FROM '{userdata}' USING DELIMITERS ',';
+\copy Tweets(posterID, content, time_posted) FROM '{tweetdata}' USING DELIMITERS ',';
+\copy Followers(userID, followerID) FROM '{followerdata}' USING DELIMITERS ',';
+\copy Passwords(userID, password) FROM '{passworddata}' USING DELIMITERS ',';
 """.format(userdata=USER_DATA, tweetdata=TWEET_DATA, followerdata=FOLLOWER_DATA, passworddata=PASSWORD_DATA)
 
     with open(SQL_CREATE_FILE, 'w') as datafile:
