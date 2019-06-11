@@ -225,7 +225,7 @@ def add_follower(userID, followerID):
     Add
 
     Return:
-         Nothing
+         True if the follower could follow the user, False otherwise.
 
     Hardness:
         1
