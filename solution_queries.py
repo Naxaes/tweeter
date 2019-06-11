@@ -473,7 +473,7 @@ def remove_tweet(tweetID):
     Add
 
     Return:
-         Nothing
+         True if tweet was removed, False otherwise.
 
     Hardness:
         1
