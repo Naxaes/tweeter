@@ -33,13 +33,13 @@ If you want to run the full-featured application, change the import in _applicat
 
 If you want to run the full-featured version, you'll have to start the server. This is done by launching psql and connecting to the database.
 
-Another possible solution is to change the arguments to the database class in the file _solution_queries.py_, as they are hardcoded to work for those who follow the course. Change these values to the default values given to you when you run psql (those in square brackets below):
+Another possible solution is to change the arguments to the database class in the file _solution_queries.py_, as they are hardcoded. Change these values to the default values given to you when you run psql (those in square brackets below):
 
-![image](https://imgur.com/54Dq2XV.png)
+![image](https://imgur.com/tKTUkpG)
 
 * **Another error pops up**
 
-The application is written and tested with Python 3 in mind. If you're using Python 2 it's possible that it doesn't work. If that's the case, please write a comment on the Ludu course explaining the error and I'll try to make it compatible with Python 2.
+The application is written and tested with Python 3 in mind. If you're using Python 2 it's possible that it doesn't work. If that's the case, please write a comment on the Ludu course explaining the error and I'll might try to make it compatible with Python 2.
 
 ## Notice
 
