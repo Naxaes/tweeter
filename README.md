@@ -1,6 +1,6 @@
 # Tweeter
 
-This is a project for the SQL-course at [Ludu.co](https://www.ludu.co/course/learn-sql).
+This is a project for the SQL-course at [Ludu.co](https://www.ludu.co/course/lar-dig-sql).
 
 
 ## Setup
