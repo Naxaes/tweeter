@@ -35,7 +35,7 @@ If you want to run the full-featured version, you'll have to start the server. T
 
 Another possible solution is to change the arguments to the database class in the file _solution_queries.py_, as they are hardcoded. Change these values to the default values given to you when you run psql (those in square brackets below):
 
-![image](https://imgur.com/tKTUkpG)
+![Terminal](https://i.imgur.com/tKTUkpG.png)
 
 * **Another error pops up**
 
