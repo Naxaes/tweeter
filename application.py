@@ -10,7 +10,7 @@ from random import choice
 from flask import Flask, render_template, redirect, url_for, request, flash, session
 from wtforms import Form, StringField, PasswordField, TextAreaField, validators
 
-from solution_queries import (
+from exercise_queries import (
     get_newest_tweets, search_for_tweets, get_user, create_user, validate_login, post_tweet,
     validate_and_perform_user_changes, get_user_by_ID, get_user_followers, get_followers_tweets, add_follower,
     remove_follower, remove_tweet
@@ -93,6 +93,8 @@ class TweetForm(Form):
 
 
 app = Flask(__name__)
+app.secret_key = 'super secret key'
+app.debug = True
 messages = [
     "Make sure to get the latest from you!",
     "There are exactly the same tweets here as last time. Predictability and consistency is gold!",
@@ -287,5 +289,4 @@ def chunks(sequence, n):
 
 
 if __name__ == '__main__':
-    app.secret_key = 'some_secret'
-    app.run(debug=True)
+    app.run()

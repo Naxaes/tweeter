@@ -1,5 +1,6 @@
 import sys
 from datetime import datetime
+# from getpass import getpass  # This should be used when prompting for passwords, but it doesn't work in an IDE.
 
 from psycopg2 import connect, Error
 from psycopg2.extras import NamedTupleCursor
@@ -21,12 +22,12 @@ Couldn't connect to server. Potential problems might be:
 
 class Database:
 
-    DEFAULT_POSTGRES_DATABASE = 'postgres'
-    DEFAULT_POSTGRES_USER     = 'postgres'
-    DEFAULT_POSTGRES_PORT     = 5432
-    DEFAULT_SERVER_HOST       = 'localhost'  # localhost is 127.0.0.1
+    DEFAULT_DATABASE = 'tweeter'
+    DEFAULT_USER     = 'postgres'
+    DEFAULT_PORT     = 5432
+    DEFAULT_HOST     = 'localhost'  # localhost is 127.0.0.1
 
-    def __init__(self, dbname=DEFAULT_POSTGRES_DATABASE, user=DEFAULT_POSTGRES_USER, password='', host=DEFAULT_SERVER_HOST, port=DEFAULT_POSTGRES_PORT):
+    def __init__(self, dbname=DEFAULT_DATABASE, user=DEFAULT_USER, password='', host=DEFAULT_HOST, port=DEFAULT_PORT):
 
         self.arguments = {
             'dbname':   dbname,
@@ -91,8 +92,7 @@ class Database:
             return ()
 
 
-database = Database(dbname='tweeter', user='postgres', password='F#Qtg5455', port=5433)
-
+database = Database(password=input('Password: '))
 
 
 def get_newest_tweets(number):
