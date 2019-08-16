@@ -11,6 +11,7 @@ from urllib import request
 from random import random, choice, randint
 from random import randrange
 from datetime import datetime, timedelta
+import sys
 import os
 import re
 
@@ -176,8 +177,13 @@ def create_sql_create_file(filename, template):
 
 
 def main():
+    try:
+        os.mkdir(DATA_PATH)
+    except FileExistsError:
+        print("You already have the data directory! Delete it in order to recreate it from scratch.", file=sys.stdout)
+        return
+
     random_words = request.urlopen(URL_TO_ENGLISH_WORDS).read().decode('utf-8').split()
-    os.mkdir(DATA_PATH)
 
     create_users_data_file(USER_DATA, NAMES, random_words)
     create_tweets_data_file(TWEET_DATA, len(NAMES), random_words)
