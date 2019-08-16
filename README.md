@@ -29,17 +29,19 @@ To run the application, simply run _application.py_. By default, all functionali
 If you want to run the full-featured application, change the import in _applications.py_ from "from exercise_queries ..." to "from solution_queries ...". 
 
 ## Common errors
-* **The application throws the error "Did you remember to start your server?".**
+* **The application throws the error _"Couldn't connect to server. Potential problems might be: ..."_**
 
-If you want to run the full-featured version, you'll have to start the server. This is done by launching psql and connecting to the database.
+If you want to run the full-featured version, you'll have to start the server. This is done by launching psql and connecting to the correct database.
 
-Another possible solution is to change the arguments to the database class in the file _solution_queries.py_, as they are hardcoded. Change these values to the default values given to you when you run psql (those in square brackets below):
+Another problem might be the arguments you pass (or don't pass). Make sure the arguments match the values from psql:
 
 ![Terminal](https://i.imgur.com/tKTUkpG.png)
 
+The only difference should be that the `Database` is _"tweeter"_, rather than _"postgres"_.
+
 * **Another error pops up**
 
-The application is written and tested with Python 3 in mind. If you're using Python 2 it's possible that it doesn't work. If that's the case, please write a comment on the Ludu course explaining the error and I'll might try to make it compatible with Python 2.
+The application is written and tested with Python 3 in mind. If you're using Python 2 it won't work. Check your version by running `python --version`, or `py --version` if you're on Windows, in the command line.
 
 ## Notice
 
