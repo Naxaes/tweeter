@@ -2,21 +2,21 @@
 Run this file to install all libraries needed to run the application, and to create data
 files. You'll need access to internet in order to run this file successfully.
 """
-import pip
-import requests
+from install import install_libraries_with_pip, LIBRARIES
+
+install_libraries_with_pip(LIBRARIES)   # Install all necessary libraries before continuing.
+
+# Built-in python packages.
+from urllib import request
 from random import random, choice, randint
 from random import randrange
 from datetime import datetime, timedelta
-from passlib.hash import sha256_crypt
 import os
 import re
 
-LIBRARIES = [
-    'flask',
-    'psycopg2',
-    'wtforms',
-    'passlib'
-]
+# Third-party python packages.
+from passlib.hash import sha256_crypt
+
 
 CURRENT_DIRECTORY = os.getcwd()
 DATA_PATH  = os.path.join(CURRENT_DIRECTORY, 'data')
@@ -80,18 +80,16 @@ NAMES = [
 DOMAINS = ['@hotmail.com', '@kth.se', '@gmail.com', '@msn.com']
 
 
-def install_libraries(libraries):
-    for library in libraries:
-        pip.main(['install', library])
-
 def random_bool(percentage):
     return random() < percentage
+
 
 def random_date(start, end):
     delta = end - start
     int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
     random_second = randrange(int_delta)
     return start + timedelta(seconds=random_second)
+
 
 def random_mail(words):
     email = ''
@@ -100,6 +98,7 @@ def random_mail(words):
     re.sub(r'\W+', '', email)
     email += choice(DOMAINS)
     return email
+
 
 def random_message(words, max_character_count, min_word_count=5, max_word_count=30):
     punctuation = ['!', '.', '...', '?', '']
@@ -118,6 +117,7 @@ def random_message(words, max_character_count, min_word_count=5, max_word_count=
 
     return message
 
+
 def create_users_data_file(filename, names, words):
     with open(filename, 'w') as datafile:
         for i, name in enumerate(names):
@@ -127,24 +127,26 @@ def create_users_data_file(filename, names, words):
 
             datafile.write('{},{},{}\n'.format(username, email, age))
 
+
 def create_tweets_data_file(filename, number_of_posters, words):
     with open(filename, 'w') as datafile:
 
         d1 = datetime.strptime('2008-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
         d2 = datetime.now()
 
-        posterID = 1
+        poster_id = 1
         for _ in range(number_of_posters):
             number_of_tweets = randint(1, 10)
             for _ in range(number_of_tweets):
                 content = random_message(words, 144)
                 time_posted = random_date(d1, d2)
 
-                datafile.write('{},{},{}\n'.format(posterID, content, time_posted))
+                datafile.write('{},{},{}\n'.format(poster_id, content, time_posted))
 
-            posterID += 1
-            if posterID > number_of_posters:
+            poster_id += 1
+            if poster_id > number_of_posters:
                 return
+
 
 def create_followers_data_file(filename, number_of_users):
     with open(filename, 'w') as datafile:
@@ -164,6 +166,7 @@ def create_passwords_data_file(filename, names):
             password = sha256_crypt.hash(name[0:4])
             datafile.write('{},{}\n'.format(i, password))
 
+
 def create_sql_create_file(filename, template):
     sql_create_file = template.format(
         userdata=USER_DATA, tweetdata=TWEET_DATA, followerdata=FOLLOWER_DATA, passworddata=PASSWORD_DATA
@@ -171,10 +174,9 @@ def create_sql_create_file(filename, template):
     with open(filename, 'w') as datafile:
         datafile.write(sql_create_file)
 
-def main():
-    install_libraries(LIBRARIES)
 
-    random_words = requests.get(URL_TO_ENGLISH_WORDS).content.decode('utf-8').split()
+def main():
+    random_words = request.urlopen(URL_TO_ENGLISH_WORDS).read().decode('utf-8').split()
     os.mkdir(DATA_PATH)
 
     create_users_data_file(USER_DATA, NAMES, random_words)
