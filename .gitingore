@@ -1,5 +1,8 @@
-.idea*
+# Mac files
 .DS_Store
+
+# Pycharm
+.idea/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

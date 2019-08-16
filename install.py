@@ -31,4 +31,4 @@ def uninstall_libraries_with_pip(libraries):
 
 
 if __name__ == '__main__':
-    uninstall_libraries_with_pip(LIBRARIES)
+    install_libraries_with_pip(LIBRARIES)
