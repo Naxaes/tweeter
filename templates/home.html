@@ -3,6 +3,7 @@
 {% block body %}
 
     <div class="jumbotron text-center">
+        <img src="/static/logo_transparent.png" alt="Logo" width="160" height="120">
         {% if session.get('logged_in') %}
             <h1>Welcome {{ session.user[1] }}!</h1>
         {% else %}

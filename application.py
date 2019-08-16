@@ -3,8 +3,6 @@ It's often very useful to look at other people's code to learn new and effective
 
 But not here. This file contains things that shouldn't be used in real production code. It works for this small case,
 but doesn't scale well, is hard to debug, and generally is not optimal.
-
-For one, it sets up a debug session.
 """
 # Built-in python packages
 from random import choice
@@ -23,23 +21,26 @@ from exercise_queries import (
 from views import SearchForm, LoginForm, RegisterForm, TweetForm, ChangeInfoForm
 
 
-class NotLoggedInException(Exception):
-    pass
-
-
-class DatabaseException(Exception):
-    pass
-
-
+# Initialize Flask.
 app = Flask(__name__)
 app.secret_key = 'super secret key'
 app.debug = True
+
+# Some fun messages to show to the users.
 messages = [
     "Make sure to get the latest from you!",
     "There are exactly the same tweets here as last time. Predictability and consistency is gold!",
     "There are only quality tweets when no one else can post.",
 ]
 default_message = 'A place where you can send tweets by yourself, to yourself!'
+
+
+class NotLoggedInException(Exception):
+    """Raised when someone currently not logged in is trying to access a page that requires log in"""
+
+
+class DatabaseException(Exception):
+    """Raised when the database yields invalid results"""
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -98,7 +99,6 @@ def login():
     form = LoginForm(request.form)
 
     if request.method == 'POST' and form.validate():
-
         result = validate_login(form.email.data, form.password.data)
 
         if result == 1:
@@ -133,13 +133,13 @@ def settings():
     form = ChangeInfoForm(request.form)
 
     if request.method == 'POST' and form.validate():
-        userID = session['user'][0]
+        user_id = session['user'][0]
         result = validate_and_perform_user_changes(
-            userID, form.confirm.data, form.username.data, form.email.data, form.age.data, form.password.data
+            user_id, form.confirm.data, form.username.data, form.email.data, form.age.data, form.password.data
         )
 
         if result:
-            session['user'] = get_user_by_ID(userID)
+            session['user'] = get_user_by_ID(user_id)
             flash('Change made!', 'success')
         else:
             flash('Wrong password!', 'danger')
@@ -151,7 +151,6 @@ def render_tweet_page(search=None):
     form = TweetForm(request.form)
 
     if request.method == 'POST':
-
         try:
             completed = dispatch_request_form(follow=follow_user, unfollow=unfollow_user, delete=delete_tweet)
             if not completed:
@@ -165,8 +164,8 @@ def render_tweet_page(search=None):
         tweets = get_newest_tweets(18)
 
     if session.get('logged_in'):
-        userID = session['user'][0]
-        followers = get_user_followers(userID)
+        user_id = session['user'][0]
+        followers = get_user_followers(user_id)
         return render_template('tweets.html', form=form, tweets=chunks(tweets, 3), followers=followers)
     else:
         return render_template('tweets.html', form=form, tweets=chunks(tweets, 3), followers=[])
@@ -174,8 +173,8 @@ def render_tweet_page(search=None):
 
 def follow_user(user_to_follow):
     if session.get('logged_in'):
-        userID = session['user'][0]
-        if not add_follower(userID, user_to_follow):
+        user_id = session['user'][0]
+        if not add_follower(user_id, user_to_follow):
             flash('Something went wrong!', 'danger')
     else:
         flash('You must be logged in to follow a user.', 'danger')
@@ -184,8 +183,8 @@ def follow_user(user_to_follow):
 
 def unfollow_user(user_to_unfollow):
     if session.get('logged_in'):
-        userID = session['user'][0]
-        if not remove_follower(userID, user_to_unfollow):
+        user_id = session['user'][0]
+        if not remove_follower(user_id, user_to_unfollow):
             flash('Something went wrong!', 'danger')
     else:
         flash('You must be logged in to unfollow a user.', 'danger')
@@ -202,8 +201,8 @@ def delete_tweet(tweet):
 def validate_tweet_form(form):
     if form.validate():
         if session.get('logged_in'):
-            userID = session['user'][0]
-            if post_tweet(userID, form.content.data):
+            user_id = session['user'][0]
+            if post_tweet(user_id, form.content.data):
                 flash('Your tweet has been posted!', 'success')
             else:
                 flash('Something went wrong!', 'danger')
