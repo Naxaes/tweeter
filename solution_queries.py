@@ -6,9 +6,27 @@ from psycopg2.extras import NamedTupleCursor
 from passlib.hash import sha256_crypt
 
 
+ERROR_TEMPLATE = """
+Couldn't connect to server. Potential problems might be:
+    * You haven't started the server. This is done by running psql and connecting to the correct database.
+    * You've passed incorrect arguments. Make sure the following arguments are correct:
+        Server      : {server}
+        Database    : {database}
+        Port        : {port}
+        Username    : {user}
+    * Another error occurred. Here's what psycopg2 suggestions:
+        {error}
+"""
+
+
 class Database:
 
-    def __init__(self, dbname, user='', password='', host='localhost', port=5432):
+    DEFAULT_POSTGRES_DATABASE = 'postgres'
+    DEFAULT_POSTGRES_USER     = 'postgres'
+    DEFAULT_POSTGRES_PORT     = 5432
+    DEFAULT_SERVER_HOST       = 'localhost'  # localhost is 127.0.0.1
+
+    def __init__(self, dbname=DEFAULT_POSTGRES_DATABASE, user=DEFAULT_POSTGRES_USER, password='', host=DEFAULT_SERVER_HOST, port=DEFAULT_POSTGRES_PORT):
 
         self.arguments = {
             'dbname':   dbname,
@@ -21,7 +39,11 @@ class Database:
         try:
             self.connection = connect(**self.arguments)
         except Error as error:
-            print(error, "\nDid you remember to start your server?\n", file=sys.stderr)
+            print(
+                ERROR_TEMPLATE.format(
+                    server=host, database=dbname, port=port, user=user, error=str(error).replace('\n', '\n\t\t')
+                ), file=sys.stderr
+            )
             exit(-1)
 
         self.cursor = self.connection.cursor(cursor_factory=NamedTupleCursor)
