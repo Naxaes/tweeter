@@ -18,7 +18,7 @@ from solution_queries import (
     validate_and_perform_user_changes, get_user_by_ID, get_user_followers, get_followers_tweets, add_follower,
     remove_follower, remove_tweet
 )
-from views import SearchForm, LoginForm, RegisterForm, TweetForm, ChangeInfoForm
+from settings.views import SearchForm, LoginForm, RegisterForm, TweetForm, ChangeInfoForm
 
 
 # Initialize Flask.
@@ -34,7 +34,7 @@ logged_in_messages = [
     "There are exactly the same tweets here as last time. Predictability and consistency is gold!",
     "There are only quality tweets when no one else can post.",
 ]
-non_logged_in_messages = 'Please take some time to appreciate the Postgres elephant and Twitter bird hybrid abomination.'
+non_logged_in_messages = 'Look at the Postgres elephant and Twitter bird hybrid. LOOK AT IT!'
 
 
 class NotLoggedInException(Exception):
