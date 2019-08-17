@@ -13,7 +13,7 @@ from flask import Flask, render_template, redirect, url_for, request, flash, ses
 # Project python packages
 # This import can be switched between 'exercise_queries' and 'solution_queries.py' in order to test your implementation
 # against the expected implementation.
-from exercise_queries import (
+from solution_queries import (
     get_newest_tweets, search_for_tweets, get_user, create_user, validate_login, post_tweet,
     validate_and_perform_user_changes, get_user_by_ID, get_user_followers, get_followers_tweets, add_follower,
     remove_follower, remove_tweet

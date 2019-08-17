@@ -111,7 +111,7 @@ def random_message(words, max_character_count, min_word_count=5, max_word_count=
         word_list.append(words[word_index])
     word_list.append(choice(punctuation))
 
-    message = ''.join(word_list)
+    message = ' '.join(word_list)
 
     if len(message) > max_character_count:
         message = message[0:max_character_count]
@@ -151,13 +151,11 @@ def create_tweets_data_file(filename, number_of_posters, words):
 
 def create_followers_data_file(filename, number_of_users):
     with open(filename, 'w') as datafile:
-        followers = set()
         following_percentage = 0.6
 
-        for userID in range(number_of_users):
-            for followerID in range(number_of_users):
+        for userID in range(1, number_of_users+1):
+            for followerID in range(1, number_of_users+1):
                 if random() < following_percentage and userID != followerID:
-                    followers.add((userID, followerID))
                     datafile.write('{},{}\n'.format(userID, followerID))
 
 
@@ -183,7 +181,7 @@ def main():
         print("You already have the data directory! Delete it in order to recreate it from scratch.", file=sys.stdout)
         return
 
-    random_words = request.urlopen(URL_TO_ENGLISH_WORDS).read().decode('utf-8').split()
+    random_words = request.urlopen(URL_TO_ENGLISH_WORDS).read().decode('utf-8').split('\n')
 
     create_users_data_file(USER_DATA, NAMES, random_words)
     create_tweets_data_file(TWEET_DATA, len(NAMES), random_words)
