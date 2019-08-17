@@ -2,18 +2,26 @@
 Run this file to install all libraries needed to run the application, and to create data
 files. You'll need access to internet in order to run this file successfully.
 """
-from install import install_libraries_with_pip, LIBRARIES
+import sys
+if sys.version_info < (3, 4, 0):
+    print(
+        "You're using python version {}.{}.{}, which is too old. Please use a new version.".format(*sys.version_info)
+    )
+    exit()
 
-install_libraries_with_pip(LIBRARIES)   # Install all necessary libraries before continuing.
 
 # Built-in python packages.
 from urllib import request
 from random import random, choice, randint
 from random import randrange
 from datetime import datetime, timedelta
-import sys
 import os
 import re
+
+from install import install_libraries_with_pip, LIBRARIES
+
+install_libraries_with_pip(LIBRARIES)   # Install all necessary libraries before continuing.
+
 
 # Third-party python packages.
 from passlib.hash import sha256_crypt
@@ -175,10 +183,11 @@ def create_sql_create_file(filename, template):
 
 
 def main():
+    print(sys.version_info)
     try:
         os.mkdir(DATA_PATH)
     except FileExistsError:
-        print("You already have the data directory! Delete it in order to recreate it from scratch.", file=sys.stdout)
+        print("You already have the data directory! Delete it in order to recreate it from scratch.")
         return
 
     random_words = request.urlopen(URL_TO_ENGLISH_WORDS).read().decode('utf-8').split('\n')
