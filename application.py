@@ -22,17 +22,19 @@ from views import SearchForm, LoginForm, RegisterForm, TweetForm, ChangeInfoForm
 
 
 # Initialize Flask.
+# The secret key is used to sign cookies cryptographically. It should be a something hard to figure out.
 app = Flask(__name__)
-app.secret_key = 'super secret key'
+app.secret_key = b'\x8c\xdb#g\x9c\x0ecf-^A\xda\xc6\x10pY'
 app.debug = True
 
 # Some fun messages to show to the users.
-messages = [
+logged_in_messages = [
+    'A place where you can send tweets by yourself, to yourself!',
     "Make sure to get the latest from you!",
     "There are exactly the same tweets here as last time. Predictability and consistency is gold!",
     "There are only quality tweets when no one else can post.",
 ]
-default_message = 'A place where you can send tweets by yourself, to yourself!'
+non_logged_in_messages = 'Please take some time to appreciate the Postgres elephant and Twitter bird hybrid abomination.'
 
 
 class NotLoggedInException(Exception):
@@ -47,22 +49,24 @@ class DatabaseException(Exception):
 def home():
     form = SearchForm(request.form)
 
+    # The use either did a search or interacted with a tweet.
     if request.method == 'POST':
         try:
-            completed = dispatch_request_form(follow=follow_user, unfollow=unfollow_user, delete=delete_tweet)
-            if not completed and form.validate():
-                return redirect(url_for('tweets_search', search=form.username.data))
+            dispatched = dispatch_request(request.form, follow=follow_user, unfollow=unfollow_user, delete=delete_tweet)
         except (NotLoggedInException, DatabaseException):
             return redirect(url_for('login'))
+        else:
+            if not dispatched and form.validate():
+                return redirect(url_for('tweets_search', search=form.username.data))
 
     if session.get('logged_in'):
         user_id = session['user'][0]
         tweets  = get_followers_tweets(user_id)
         followers = get_user_followers(user_id)
-        return render_template('home.html', form=form, tweets=chunks(tweets, 3), message=choice(messages), followers=followers)
+        return render_template('home.html', form=form, tweets=chunks(tweets, 3), message=choice(logged_in_messages), followers=followers)
     else:
         tweets = get_newest_tweets(18)
-        return render_template('home.html', form=form, tweets=chunks(tweets, 3), message=default_message, followers=[])
+        return render_template('home.html', form=form, tweets=chunks(tweets, 3), message=non_logged_in_messages, followers=[])
 
 
 @app.route('/tweets/search=<string:search>', methods=['GET', 'POST'])
@@ -121,6 +125,7 @@ def logout():
     flash("You've logged out.", 'success')
     session['logged_in'] = False
     session['user'] = None
+    session.clear()
     return redirect(url_for('home'))
 
 
@@ -152,7 +157,7 @@ def render_tweet_page(search=None):
 
     if request.method == 'POST':
         try:
-            completed = dispatch_request_form(follow=follow_user, unfollow=unfollow_user, delete=delete_tweet)
+            completed = dispatch_request(request.form, follow=follow_user, unfollow=unfollow_user, delete=delete_tweet)
             if not completed:
                 validate_tweet_form(form)
         except (NotLoggedInException, DatabaseException):
@@ -160,6 +165,10 @@ def render_tweet_page(search=None):
 
     if search:
         tweets = search_for_tweets(search)
+        if len(tweets) == 0:
+            flash('No tweets found!', 'danger')
+        else:
+            flash('{number} tweets found!'.format(number=len(tweets)), 'success')
     else:
         tweets = get_newest_tweets(18)
 
@@ -176,6 +185,8 @@ def follow_user(user_to_follow):
         user_id = session['user'][0]
         if not add_follower(user_id, user_to_follow):
             flash('Something went wrong!', 'danger')
+        else:
+            flash('Successfully followed {user}!'.format(user=get_user_by_ID(user_to_follow)[1]), 'success')
     else:
         flash('You must be logged in to follow a user.', 'danger')
         raise NotLoggedInException()
@@ -186,6 +197,8 @@ def unfollow_user(user_to_unfollow):
         user_id = session['user'][0]
         if not remove_follower(user_id, user_to_unfollow):
             flash('Something went wrong!', 'danger')
+        else:
+            flash('Successfully unfollowed {user}!'.format(user=get_user_by_ID(user_to_unfollow)[1]), 'success')
     else:
         flash('You must be logged in to unfollow a user.', 'danger')
         raise NotLoggedInException()
@@ -211,12 +224,13 @@ def validate_tweet_form(form):
             raise NotLoggedInException()
 
 
-def dispatch_request_form(**kwargs):
+def dispatch_request(form, **kwargs):
+    """Checks if the given form contains any of the names provided, and if so calls the provided function."""
     completed = False
-    for word, func in kwargs.items():
-        argument = request.form.get(word)
+    for name, function in kwargs.items():
+        argument = form.get(name)
         if argument:
-            func(argument)
+            function(argument)
             completed = True
     return completed
 

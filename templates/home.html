@@ -23,12 +23,18 @@
     <hr>
 
     {% if session.get('logged_in') %}
-        <h1>Your followers tweets</h1>
+        <h1>Your follower's tweets</h1>
     {% else %}
         <h1>Newest tweets</h1>
     {% endif %}
 
     {% include 'includes/_tweetlayout.html' %}
 
+
+    <!–– Display copyleft footer -->
+    <footer>
+        <p style="display: inline-block; transform: rotate(180deg)">©</p>
+        <p style="display: inline-block">2018 Tweeter.</p>
+    </footer>
 
 {% endblock %}

@@ -472,6 +472,7 @@ def add_follower(userID, followerID):
     success = database.execute(query, userID=userID, followerID=followerID)
     return success
 
+
 def remove_follower(userID, followerID):
     """
     Add
