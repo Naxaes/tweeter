@@ -99,7 +99,7 @@ def random_message(words, max_character_count, min_word_count=5, max_word_count=
     return message
 
 
-def create_users_data_file(filename, names, words):
+def users_data_file(filename, names, words):
     with open(filename, 'w') as datafile:
         for i, name in enumerate(names):
             username = name
@@ -109,7 +109,7 @@ def create_users_data_file(filename, names, words):
             datafile.write('{},{},{}\n'.format(username, email, age))
 
 
-def create_tweets_data_file(filename, number_of_posters, words):
+def tweets_data_file(filename, number_of_posters, words):
     with open(filename, 'w') as datafile:
 
         d1 = datetime.strptime('2008-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
@@ -129,7 +129,7 @@ def create_tweets_data_file(filename, number_of_posters, words):
                 return
 
 
-def create_followers_data_file(filename, number_of_users):
+def followers_data_file(filename, number_of_users):
     with open(filename, 'w') as datafile:
         following_percentage = 0.6
 
@@ -139,14 +139,14 @@ def create_followers_data_file(filename, number_of_users):
                     datafile.write('{},{}\n'.format(userID, followerID))
 
 
-def create_passwords_data_file(filename, names):
+def passwords_data_file(filename, names):
     with open(filename, 'w') as datafile:
         for i, name in enumerate(names, start=1):
             password = sha256_crypt.hash(name[0:4])
             datafile.write('{},{}\n'.format(i, password))
 
 
-def create(root):
+def sql_create_file_and_data(root):
     root_directory  = root
     data_directory  = os.path.join(root_directory, 'data')
 
@@ -164,12 +164,12 @@ def create(root):
 
     random_words = request.urlopen(URL_TO_ENGLISH_WORDS).read().decode('utf-8').split('\n')
 
-    create_users_data_file(user_data_path, NAMES, random_words)
-    create_tweets_data_file(tweet_data_path, len(NAMES), random_words)
-    create_followers_data_file(follower_data_path, len(NAMES))
-    create_passwords_data_file(password_data_path, NAMES)
+    users_data_file(user_data_path, NAMES, random_words)
+    tweets_data_file(tweet_data_path, len(NAMES), random_words)
+    followers_data_file(follower_data_path, len(NAMES))
+    passwords_data_file(password_data_path, NAMES)
 
-    sql_create_file = SQL_CREATE_FILE_TEMPLATE.format(
+    sql_create_file_content = SQL_CREATE_FILE_TEMPLATE.format(
         userdata=user_data_path,
         tweetdata=tweet_data_path,
         followerdata=follower_data_path,
@@ -177,8 +177,4 @@ def create(root):
     )
 
     with open(sql_create_path, 'w') as datafile:
-        datafile.write(sql_create_file)
-
-
-if __name__ == '__main__':
-    create(os.getcwd())
+        datafile.write(sql_create_file_content)

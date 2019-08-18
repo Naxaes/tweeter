@@ -64,7 +64,6 @@ class Database:
             self.connection.rollback()
             return False
         else:
-            # This will be executed if the exception isn't raised.
             self.connection.commit()
             return True
 
@@ -92,7 +91,7 @@ class Database:
             return ()
 
 
-database = Database(password=input('Password: '))
+database = Database(password='F#Qtg5455')
 
 
 def get_newest_tweets(number):
@@ -132,7 +131,7 @@ def get_newest_tweets(number):
 
 def search_for_tweets(search):
     """
-    Fetch all tweets that has the search string in the content or in the username.
+    Fetch all tweets that has the search string in the content or in the username. Order by time posted.
 
     The values in each tuple should be:
         tweetID, posterID, username, content, time_posted
@@ -154,8 +153,9 @@ def search_for_tweets(search):
     """
     query = """
         SELECT tweetID, posterID, username, content, time_posted
-        FROM Users JOIN Tweets ON userID = posterID
-        WHERE username LIKE %(search)s OR content LIKE %(search)s;
+        FROM   Users JOIN Tweets ON userID = posterID
+        WHERE  username LIKE %(search)s OR content LIKE %(search)s
+        ORDER BY time_posted DESC;
     """
     database.execute(query, search='%{}%'.format(search))
     result = []
@@ -297,7 +297,7 @@ def validate_login(email, password):
         return -1
 
 
-def post_tweet(userID, content):
+def save_tweet(userID, content):
     """
     Save the a tweet in the database.
 
@@ -347,8 +347,10 @@ def validate_and_perform_user_changes(userID, password_confirmation, username=No
          True if password is correct, False otherwise.
 
     Hardness:
-        3
+        5
     """
+
+    # First query the password.
     query = """
         SELECT password
         FROM   Passwords
@@ -357,42 +359,72 @@ def validate_and_perform_user_changes(userID, password_confirmation, username=No
     database.execute(query, userID=userID)
     result = database.get_result_from_last_query(1)
 
-    if not sha256_crypt.verify(password_confirmation, result.password):
+    if not result:
         return False
+    elif not sha256_crypt.verify(password_confirmation, result.password):
+        return False
+
+    # This have to be a transaction. Otherwise we might only change parts of the user's info. Since we're executing
+    # multiple queries within the transaction, we cannot use the database's helper function 'execute', since it commits
+    # each query. We'll have to use the cursor manually and only commit at the end of the function.
+    start_transaction = "START TRANSACTION READ WRITE ISOLATION LEVEL SERIALIZABLE;"
+    database.cursor.execute(start_transaction)
 
     if username:
         query = """
                 UPDATE Users 
                 SET    username = %(username)s 
                 WHERE  userID = %(userID)s;
-            """
-        database.execute(query, username=username, userID=userID)
+        """
+        try:
+            database.cursor.execute(query, {'username':username, 'userID':userID})
+        except Error as error:
+            print(error.pgerror, file=sys.stderr)
+            database.connection.rollback()
+            return False
 
     if age:
         query = """
                 UPDATE Users 
                 SET    age = %(age)s 
                 WHERE  userID = %(userID)s;
-            """
-        database.execute(query, age=age, userID=userID)
+        """
+        try:
+            database.cursor.execute(query, {'age':age, 'userID':userID})
+        except Error as error:
+            print(error.pgerror, file=sys.stderr)
+            database.connection.rollback()
+            return False
 
     if password:
         query = """
                 UPDATE Passwords 
                 SET    password = %(password)s 
                 WHERE  userID = %(userID)s;
-            """
+        """
         hashed_password = sha256_crypt.encrypt(password)
-        database.execute(query, password=hashed_password, userID=userID)
+        try:
+            database.cursor.execute(query, {'password':hashed_password, 'userID':userID})
+        except Error as error:
+            print(error.pgerror, file=sys.stderr)
+            database.connection.rollback()
+            return False
 
     if email:
         query = """
                 UPDATE Users 
                 SET    email  = %(email)s 
                 WHERE  userID = %(userID)s;
-            """
-        database.execute(query, email=email, userID=userID)
+        """
+        try:
+            database.cursor.execute(query, {'email':email, 'userID':userID})
+        except Error as error:
+            print(error.pgerror, file=sys.stderr)
+            database.connection.rollback()
+            return False
 
+    # Don't forget to commit the transaction!
+    database.connection.commit()
     return True
 
 

@@ -34,7 +34,7 @@ def get_newest_tweets(number):
 
 def search_for_tweets(search):
     """
-    Fetch all tweets that has the search string in the content or in the username.
+    Fetch all tweets that has the search string in the content or in the username. Order by time posted.
 
     The values in each tuple should be:
         tweetID, posterID, username, content, time_posted
@@ -140,7 +140,7 @@ def validate_login(email, password):
     """
     return -1
 
-def post_tweet(userID, content):
+def save_tweet(userID, content):
     """
     Save the a tweet in the database.
 
