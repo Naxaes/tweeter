@@ -4,11 +4,9 @@ NOTE: The flask server is supplied by Werkzeug, which loads your application twi
       that any code you have in the top-level will be run twice. Shouldn't cause any problem however, but is something
       to be aware about.
 
-
-It's often very useful to look at other people's code to learn new and effective ways to program!
-
-But not here. This file contains things that shouldn't be used in real production code. It works for this small case,
-but doesn't scale well, is hard to debug, and generally is not optimal.
+NOTE: Some code in this application doesn't follow best practices. This is to keep things less complicated. One of the
+      biggest concerns is the lack of an ORM, which was omitted as the course is about learning SQL and not about
+      developing a website. This causes some synchronization issues and thus some hardcoding has to take place.
 """
 # Built-in python packages
 from random      import choice
@@ -18,7 +16,7 @@ from collections import namedtuple
 from flask import Flask, render_template, redirect, url_for, request, flash, session
 
 # Project python packages
-# This import can be switched between 'database_exercise' and 'database.py' in order to test your implementation
+# This import can be switched between 'database_exercise' and 'database' in order to test your implementation
 # against the expected implementation.
 from database_exercise import (
     get_newest_tweets, search_for_tweets, get_user, create_user, validate_login, save_tweet,
