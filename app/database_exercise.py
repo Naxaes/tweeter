@@ -8,6 +8,7 @@ from passlib.hash import sha256_crypt
 
 
 
+
 def get_newest_tweets(number):
     """
     Fetch x amount of tweets ordered by time_posted (descending order).
@@ -140,6 +141,7 @@ def validate_login(email, password):
     """
     return -1
 
+
 def save_tweet(userID, content):
     """
     Save the a tweet in the database.
@@ -157,6 +159,7 @@ def save_tweet(userID, content):
         2
     """
     return False
+
 
 def validate_and_perform_user_changes(userID, password_confirmation, username=None, email=None, age=None,
                                       password=None):
@@ -244,6 +247,7 @@ def remove_follower(userID, followerID):
         1
     """
     return False
+
 
 def remove_tweet(tweetID):
     """

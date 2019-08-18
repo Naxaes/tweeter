@@ -88,7 +88,7 @@ def home():
             followers=followers
         )
     else:
-        tweets = get_newest_tweets(18)
+        tweets = get_newest_tweets(9)
         return render_template(
             'home.html',
             form=form,
@@ -123,7 +123,7 @@ def tweets(search=None):
             else:
                 flash('{number} tweets found!'.format(number=len(tweets)), 'success')
     else:
-        tweets = get_newest_tweets(18)
+        tweets = get_newest_tweets(9)
 
     if session.get('logged_in'):
         user = User(*session['user'])

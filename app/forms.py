@@ -8,15 +8,20 @@ Currently, we've just hardcoded the fields and restrictions.
 """
 from wtforms import Form, StringField, PasswordField, TextAreaField, validators
 
+USERNAME_LENGTH = 50
+PASSWORD_LENGTH = 144
+EMAIL_LENGTH    = 255
+TWEET_LENGTH    = 144
+
 
 class RegisterForm(Form):
     username = StringField(
         'Username ',
-        validators=[validators.input_required(message='Must provide a username!'), validators.length(min=1, max=144)]
+        validators=[validators.input_required(message='Must provide a username!'), validators.length(min=1, max=USERNAME_LENGTH)]
     )
     email = StringField(
         'Email ',
-        validators=[validators.input_required(message='Must provide an email!'), validators.length(min=1, max=144)]
+        validators=[validators.input_required(message='Must provide an email!'), validators.length(min=1, max=EMAIL_LENGTH)]
     )
     age = StringField(
         'Age',
@@ -24,7 +29,7 @@ class RegisterForm(Form):
     )
     password = PasswordField(
         'Password',
-        validators=[validators.input_required(message='Must provide a password!'), validators.length(min=1, max=144)]
+        validators=[validators.input_required(message='Must provide a password!'), validators.length(min=1, max=PASSWORD_LENGTH)]
     )
     confirm = PasswordField(
         'Confirm',
@@ -38,11 +43,11 @@ class RegisterForm(Form):
 class ChangeInfoForm(Form):
     username = StringField(
         'Change username ',
-        validators=[validators.length(min=1, max=144)]
+        validators=[validators.length(min=1, max=USERNAME_LENGTH)]
     )
     email = StringField(
         'Change email ',
-        validators=[validators.length(max=144)]
+        validators=[validators.length(max=EMAIL_LENGTH)]
     )
     age = StringField(
         'Change age',
@@ -50,7 +55,7 @@ class ChangeInfoForm(Form):
     )
     password = PasswordField(
         'Change password',
-        validators=[validators.length(max=144)]
+        validators=[validators.length(max=PASSWORD_LENGTH)]
     )
     confirm = PasswordField(
         'Confirm with current password',
@@ -72,7 +77,7 @@ class LoginForm(Form):
 
 
 class SearchForm(Form):
-    username = StringField(
+    search = StringField(
         '',
         validators=[validators.input_required(message='Cannot search for nothing...')]
     )
@@ -83,6 +88,6 @@ class TweetForm(Form):
         '',
         validators=[
             validators.input_required(message='Cannot post emtpy tweets...'),
-            validators.length(min=1, max=144)
+            validators.length(min=1, max=TWEET_LENGTH)
         ]
     )

@@ -16,8 +16,8 @@ DROP TABLE IF EXISTS Passwords CASCADE;
 
 CREATE TABLE Users (
 	userID   SERIAL PRIMARY KEY,
-	username VARCHAR(144) NOT NULL,
-	email    VARCHAR(144) UNIQUE NOT NULL,
+	username VARCHAR(50) NOT NULL,
+	email    VARCHAR(255) UNIQUE NOT NULL,
 	age      INTEGER CONSTRAINT over_zero_years_old CHECK(age > 0)
 );
 
@@ -34,7 +34,8 @@ CREATE TABLE Followers (
 	userID     INTEGER REFERENCES Users(userID) ON DELETE CASCADE,
 	followerID INTEGER REFERENCES Users(userID) ON DELETE CASCADE,
 
-	PRIMARY KEY (userID, followerID)
+    PRIMARY KEY (userID, followerID),
+    CONSTRAINT cant_follow_oneself CHECK (userID != followerID)
 );
 
 
