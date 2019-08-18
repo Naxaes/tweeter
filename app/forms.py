@@ -1,3 +1,11 @@
+"""
+We use simple forms in this tutorial, but a more common practice is to use an ORM, which generates code to the database
+based on the model of the forms (like Django's 'Model' class). However, it would be quite a boring SQL-course without
+having to write any SQL. Just take in mind that the lack of an ORM makes it harder to synchronize the fields of the
+application with the fields of the database.
+
+Currently, we've just hardcoded the fields and restrictions.
+"""
 from wtforms import Form, StringField, PasswordField, TextAreaField, validators
 
 
@@ -71,7 +79,7 @@ class SearchForm(Form):
 
 
 class TweetForm(Form):
-    content = TextAreaField(
+    post = TextAreaField(
         '',
         validators=[
             validators.input_required(message='Cannot post emtpy tweets...'),
