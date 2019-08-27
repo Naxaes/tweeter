@@ -52,6 +52,7 @@ This application is written as a simple project for learning to use a database. 
 * The paragraph tag doesn't wrap text by default. This means that posting a tweet with just a single long word or reducing your browser width will overflow the edge. Solution to this is to implement some check for long words and manually break them, or to include a CSS property `word-break`.
 * An email doesn't have to be valid. This could be fixed by adding a trigger to the User table and make sure the application handles those exceptions.
 * The settings page is not displaying good error messages when the data is invalid or the password is wrong. This could be fixed by raising an error from `validate_and_perform_user_changes` which could get caught in the application and displayed with a flash message.
+* Searching for a tweet containing an URL (for example 'http://127.0.0.1:5000'), will yield 'Not Found'.
 
 ## Author
 

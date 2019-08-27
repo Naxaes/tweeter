@@ -14,9 +14,8 @@
 
     {% from 'includes/_formhelpers.html' import render_field %}
     <form method="POST" action="">
-        <h3>Search</h3>
         <div class="form-group">
-            {{ render_field(form.username, class_="form-control") }}
+            {{ render_field(form.search, class_="form-control") }}
         </div>
     </form>
 

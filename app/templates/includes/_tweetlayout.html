@@ -9,16 +9,16 @@
                     <div class="col-xs-8"> <footer>{{ tweet.time_posted }}</footer> </div>
                     <div class="col-xs-2">
                         <form action="" method="POST" >
-                            {% if session.get('user') and tweet.posterid == session['user'][0] %}
-                                <button class="btn btn-warning" type="submit" name="delete" value={{ tweet.tweetid }}>
+                            {% if session.get('user') and tweet.poster_id == session['user'][0] %}
+                                <button class="btn btn-warning" type="submit" name="delete" value={{ tweet.tweet_id }}>
                                     <span class="glyphicon glyphicon-thumbs-down"></span> Delete
                                 </button>
-                            {% elif tweet.posterid in followers %}
-                                <button class="btn btn-danger" type="submit" name="unfollow" value={{ tweet.posterid }}>
+                            {% elif tweet.poster_id in followers %}
+                                <button class="btn btn-danger" type="submit" name="unfollow" value={{ tweet.poster_id }}>
                                     <span class="glyphicon glyphicon-thumbs-down"></span> Unfollow
                                 </button>
                             {% else %}
-                                <button class="btn btn-success" type="submit" name="follow" value={{ tweet.posterid }}>
+                                <button class="btn btn-success" type="submit" name="follow" value={{ tweet.poster_id }}>
                                     <span class="glyphicon glyphicon-heart-empty"></span> Follow
                                 </button>
                             {% endif %}

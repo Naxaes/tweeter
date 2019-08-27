@@ -1,87 +1,112 @@
-"""
-We use simple forms in this tutorial, but a more common practice is to use an ORM, which generates code to the database
-based on the model of the forms (like Django's 'Model' class). However, it would be quite a boring SQL-course without
-having to write any SQL. Just take in mind that the lack of an ORM makes it harder to synchronize the fields of the
-application with the fields of the database.
+# ---- AUTO-GENERATED ----
+from wtforms import Form, StringField, PasswordField, TextAreaField, IntegerField, validators
 
-Currently, we've just hardcoded the fields and restrictions.
-"""
-from wtforms import Form, StringField, PasswordField, TextAreaField, validators
 
+USERNAME_LENGTH_VALIDATOR = validators.length(
+        min=4,
+        max=32,
+        message='Username must be between %(min)s and %(max)s!'
+    )
+USER_AGE_RANGE_VALIDATOR = validators.NumberRange(
+        min=0,
+        max=150,
+        message='Is that really your age? We only allow people between %(min)s and %(max)s.'
+    )
+PASSWORD_LENGTH_VALIDATOR = validators.length(
+        min=4,
+        max=32,
+        message='Password must be between %(min)s and %(max)s characters!'
+    )
+TWEET_LENGTH_VALIDATOR  = validators.length(
+        min=4,
+        max=144,
+        message='Tweet must be between %(min)s and %(max)s characters!'
+    )
 
 class RegisterForm(Form):
     username = StringField(
-        'Username ',
-        validators=[validators.input_required(message='Must provide a username!'), validators.length(min=1, max=144)]
+        label='Username',
+        validators=[
+            USERNAME_LENGTH_VALIDATOR,
+            validators.input_required(message='Username must be provided!')
+        ]
     )
     email = StringField(
-        'Email ',
-        validators=[validators.input_required(message='Must provide an email!'), validators.length(min=1, max=144)]
+        label='Email',
+        validators=[
+            validators.Email(message='Email is invalid!'),
+            validators.input_required(message='Email must be provided!'),
+        ]
     )
-    age = StringField(
-        'Age',
-        validators=[]
+    age = IntegerField(
+        label='Age',
+        validators=[
+            validators.Optional(),
+            USER_AGE_RANGE_VALIDATOR
+        ]
     )
     password = PasswordField(
-        'Password',
-        validators=[validators.input_required(message='Must provide a password!'), validators.length(min=1, max=144)]
+        label='Password',
+        validators=[
+            validators.input_required(message='Password must be provided!'),
+            PASSWORD_LENGTH_VALIDATOR
+        ]
     )
     confirm = PasswordField(
-        'Confirm',
+        label='Confirm',
         validators=[
             validators.input_required(message='Must confirm password!'),
-            validators.equal_to('password', message="Password didn't match!")
+            validators.equal_to(fieldname='password', message="Passwords didn't match!")
         ]
     )
 
 
 class ChangeInfoForm(Form):
     username = StringField(
-        'Change username ',
-        validators=[validators.length(min=1, max=144)]
+        label='New username ',
+        validators=[validators.Optional(), USERNAME_LENGTH_VALIDATOR]
     )
     email = StringField(
-        'Change email ',
-        validators=[validators.length(max=144)]
+        label='New email ',
+        validators=[validators.Optional(), validators.Email(message='Email is invalid!')]
     )
-    age = StringField(
-        'Change age',
-        validators=[]
+    age = IntegerField(
+        label='New age',
+        validators=[validators.Optional(), USER_AGE_RANGE_VALIDATOR]
     )
     password = PasswordField(
-        'Change password',
-        validators=[validators.length(max=144)]
+        label='New password',
+        validators=[validators.Optional(), PASSWORD_LENGTH_VALIDATOR]
     )
     confirm = PasswordField(
-        'Confirm with current password',
+        label='Confirm with current password',
         validators=[
-            validators.input_required(message='Must approve changes with your password!')
+            validators.input_required(message='Password is required to approve changes!')
         ]
     )
 
 
 class LoginForm(Form):
     email = StringField(
-        'Email ',
-        validators=[validators.input_required(message='Must provide username')]
+        label='Email ',
+        validators=[
+            validators.Email(message='Email is invalid!'),
+            validators.input_required(message='Must provide username')
+        ]
     )
     password = PasswordField(
-        'Password',
-        validators=[validators.input_required(message='Must provide password')]
+        label='Password',
+        validators=[
+            PASSWORD_LENGTH_VALIDATOR,
+            validators.input_required(message='Must provide password')
+        ]
     )
 
 
 class SearchForm(Form):
-    username = StringField(
-        '',
-        validators=[validators.input_required(message='Cannot search for nothing...')])
+    search = StringField(label='Search')
 
 
 class TweetForm(Form):
-    post = TextAreaField(
-        '',
-        validators=[
-            validators.input_required(message='Cannot post emtpy tweets...'),
-            validators.length(min=1, max=144)
-        ]
-    )
+    post = TextAreaField(validators=[TWEET_LENGTH_VALIDATOR])
+

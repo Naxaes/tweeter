@@ -22,7 +22,7 @@ from flask import Flask, render_template, redirect, url_for, request, flash, ses
 # against the expected implementation.
 from database import (
     get_newest_tweets, search_for_tweets, get_user, create_user, validate_login, save_tweet,
-    validate_and_perform_user_changes, get_user_by_ID, get_user_followers, get_followers_tweets, add_follower,
+    validate_and_perform_user_changes, get_user_by_id, get_user_followers, get_followers_tweets, add_follower,
     remove_follower, remove_tweet
 )
 from forms import SearchForm, LoginForm, RegisterForm, TweetForm, ChangeInfoForm
@@ -31,7 +31,7 @@ from forms import SearchForm, LoginForm, RegisterForm, TweetForm, ChangeInfoForm
 # Due to the global session variable changing the type to an regular tuple (for some reason ...), this User class
 # converts it back to a named tuple. A bit of hardcoding going on here so a more sophisticated solution should
 # be used in production code. However, this is sufficient for this simple program.
-User = namedtuple('User', 'userID, username, email, age')
+User = namedtuple('User', 'user_id, username, email, age')
 
 
 # Initialize Flask.
@@ -48,7 +48,7 @@ logged_in_messages = [
     "There are exactly the same tweets here as last time. Predictability and consistency is gold!",
     "There are only quality tweets when no one else can post.",
 ]
-non_logged_in_messages = 'Look at the Postgres-elephant/Twitter-bird hybrid. Look at it!'
+non_logged_in_message = 'Look at the Postgres-elephant/Twitter-bird hybrid. Look at it!'
 
 
 class NotLoggedInException(Exception):
@@ -61,75 +61,54 @@ class DatabaseException(Exception):
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
+    # Fill out the search form. It's either empty or contains search string.
     form = SearchForm(request.form)
 
     # The use either did a search or interacted with a tweet.
     if request.method == 'POST':
-        url_redirect_request = dispatch_tweet_actions(request.form)
-        if url_redirect_request:
-            return url_redirect_request
-        elif form.validate():
-            return redirect(url_for('tweets', search=form.username.data))
-        else:
-            # Either the tweet action or the form was invalid, or the tweet action was valid but didn't require any
-            # redirection. Anyway, continue to render as if no POST request happened.
-            # The other functions should notify the user on invalid data, so no feedback is necessary here.
-            pass
+        if not dispatch_tweet_actions(request.form) and form.validate():
+            return redirect(url_for('tweets', search=form.search.data))
 
     if session.get('logged_in'):
-        user   = User(*session['user'])
-        tweets = get_followers_tweets(user.userID)
-        followers = get_user_followers(user.userID)
-        return render_template(
-            'home.html',
-            form=form,
-            tweets=chunks(tweets, 3),
-            message=choice(logged_in_messages),
-            followers=followers
-        )
+        user = User(*session['user'])
+        tweet_posts = get_followers_tweets(user.user_id)
+        followers = get_user_followers(user.user_id)
+        message = choice(logged_in_messages)
+        return render_template('home.html', form=form, tweets=chunks(tweet_posts, 3), message=message, followers=followers)
     else:
-        tweets = get_newest_tweets(18)
-        return render_template(
-            'home.html',
-            form=form,
-            tweets=chunks(tweets, 3),
-            message=non_logged_in_messages,
-            followers=[]
-        )
+        tweet_posts = get_newest_tweets(18)
+        message = non_logged_in_message
+        return render_template('home.html', form=form, tweets=chunks(tweet_posts, 3), message=message, followers=[])
+
 
 @app.route('/tweets', methods=['GET', 'POST'])
 @app.route('/tweets/search=<string:search>', methods=['GET', 'POST'])
 def tweets(search=None):
     form = TweetForm(request.form)
 
+    # The use either posted a tweet or interacted with a tweet.
     if request.method == 'POST':
-        url_redirect_request = dispatch_tweet_actions(request.form)
-        if url_redirect_request:
-            return url_redirect_request
-        else:
-            # Either the tweet action was invalid or the tweet action was valid but didn't require any redirection.
-            # Anyway, continue to render as if no POST request happened.
-            # The other functions should notify the user on invalid data, so no feedback is necessary here.
-            pass
+        if not dispatch_tweet_actions(request.form) and form.validate():
+            post_tweet(form.post.data)
 
     if search:
-        tweets = search_for_tweets(search)
+        tweet_posts = search_for_tweets(search)
 
         # Only notify first time we're getting the page.
         if request.method == 'GET':
-            if len(tweets) == 0:
+            if len(tweet_posts) == 0:
                 flash('No tweets found!', 'danger')
             else:
-                flash('{number} tweets found!'.format(number=len(tweets)), 'success')
+                flash('{number} tweets found!'.format(number=len(tweet_posts)), 'success')
     else:
-        tweets = get_newest_tweets(18)
+        tweet_posts = get_newest_tweets(18)
 
     if session.get('logged_in'):
         user = User(*session['user'])
-        followers = get_user_followers(user.userID)
-        return render_template('tweets.html', form=form, tweets=chunks(tweets, 3), followers=followers)
+        followers = get_user_followers(user.user_id)
+        return render_template('tweets.html', form=form, tweets=chunks(tweet_posts, 3), followers=followers)
     else:
-        return render_template('tweets.html', form=form, tweets=chunks(tweets, 3), followers=[])
+        return render_template('tweets.html', form=form, tweets=chunks(tweet_posts, 3), followers=[])
 
 
 
@@ -160,7 +139,7 @@ def login():
         result = validate_login(form.email.data, form.password.data)
 
         if result == 1:
-            session['user']      = get_user(form.email.data)
+            session['user']  = get_user(form.email.data)
             session['logged_in'] = True
             flash('You were successfully logged in.', 'success')
             return redirect(url_for('home'))
@@ -178,7 +157,7 @@ def login():
 def logout():
     flash("You've logged out.", 'success')
     session['logged_in'] = False
-    session['user']      = None
+    session['user'] = None
     session.clear()
     return redirect(url_for('home'))
 
@@ -190,19 +169,22 @@ def settings():
         flash('No! Bad!', 'danger')
         return redirect(url_for('home'))
 
-    form = ChangeInfoForm(request.form)
+    user_id = session['user'][0]
 
-    if request.method == 'POST' and form.validate():
-        user_id = session['user'][0]
-        result = validate_and_perform_user_changes(
-            user_id, form.confirm.data, form.username.data, form.email.data, form.age.data, form.password.data
-        )
-
-        if result:
-            session['user'] = get_user_by_ID(user_id)  # Update the session to hold the new values for the user.
-            flash('Change made!', 'success')
-        else:
-            flash('Wrong password or invalid data!', 'danger')
+    if request.method == 'POST':
+        form = ChangeInfoForm(request.form)
+        if form.validate():
+            result = validate_and_perform_user_changes(
+                user_id, form.confirm.data, form.username.data, form.email.data, form.age.data, form.password.data
+            )
+            if result:
+                session['user'] = get_user_by_id(user_id)  # Update the session to hold the new values for the user.
+                flash('Change made!', 'success')
+            else:
+                flash('Wrong password or invalid data!', 'danger')
+    else:
+        user = get_user_by_id(user_id)
+        form = ChangeInfoForm(request.form, obj=user)
 
     return render_template('settings.html', form=form)
 
@@ -210,9 +192,8 @@ def settings():
 def post_tweet(content):
     if session.get('logged_in'):
         user = User(*session['user'])
-        if save_tweet(user.userID, content):
+        if save_tweet(user.user_id, content):
             flash('Your tweet has been posted!', 'success')
-            return redirect(url_for('tweets'))
         else:
             raise DatabaseException("Tweet couldn't be posted!")
     else:
@@ -222,10 +203,10 @@ def post_tweet(content):
 def follow_user(user_to_follow):
     if session.get('logged_in'):
         user = User(*session['user'])
-        if not add_follower(user.userID, user_to_follow):
+        if not add_follower(user.user_id, user_to_follow):
             raise DatabaseException("Couldn't follow user!")
         else:
-            other_user = User(*get_user_by_ID(user_to_follow))
+            other_user = User(*get_user_by_id(user_to_follow))
             flash('Successfully followed {user}!'.format(user=other_user.username), 'success')
     else:
         raise NotLoggedInException('You must be logged in to follow a user.')
@@ -234,10 +215,10 @@ def follow_user(user_to_follow):
 def unfollow_user(user_to_unfollow):
     if session.get('logged_in'):
         user = User(*session['user'])
-        if not remove_follower(user.userID, user_to_unfollow):
+        if not remove_follower(user.user_id, user_to_unfollow):
             raise DatabaseException("Couldn't unfollow user!")
         else:
-            other_user = User(*get_user_by_ID(user_to_unfollow))
+            other_user = User(*get_user_by_id(user_to_unfollow))
             flash('Successfully unfollowed {user}!'.format(user=other_user.username), 'success')
     else:
         raise NotLoggedInException('You must be logged in to unfollow a user.')
@@ -254,23 +235,21 @@ def delete_tweet(tweet):
 
 def dispatch_tweet_actions(form):
     """
-    Checks the tweet actions 'follow', 'unfollow', 'delete' and 'post', and returns the appropriate redirection, or None if no
-    redirection is needed.
+    Checks the tweet actions 'follow', 'unfollow' and 'delete'. Returns True if an action was applied, else False.
     """
-    actions = { 'follow': follow_user, 'unfollow': unfollow_user, 'delete': delete_tweet, 'post': post_tweet }
+    actions = { 'follow': follow_user, 'unfollow': unfollow_user, 'delete': delete_tweet }
 
     for name, func in actions.items():
         argument = form.get(name)
         if argument:
             try:
-                return func(argument)
+                func(argument)
+                return True
             except DatabaseException as error:
                 flash(str(error), 'danger')
-                return None
             except NotLoggedInException as error:
                 flash(str(error), 'danger')
-                return redirect(url_for('login'))
-    return None
+    return False
 
 
 def get_logged_in_user():
@@ -279,7 +258,7 @@ def get_logged_in_user():
     converts it back to a named tuple. A bit of hardcoding going on here so a more sophisticated solution should
     be used in production code. However, this is sufficient for this simple program.
     """
-    user_class = namedtuple('User', 'userID, username, email, age')
+    user_class = namedtuple('User', 'user_id, username, email, age')
     return user_class(*session['user'])
 
 
