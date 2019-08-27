@@ -18,12 +18,17 @@ from flask import Flask, render_template, redirect, url_for, request, flash, ses
 # Project python packages
 # This import can be switched between 'database_exercise' and 'database' in order to test your implementation
 # against the expected implementation.
-from database_exercise import (
+from database import (
     get_newest_tweets, search_for_tweets, get_user, create_user, validate_login, save_tweet,
     validate_and_perform_user_changes, get_user_by_id, get_user_followers, get_followers_tweets, add_follower,
     remove_follower, remove_tweet
 )
 from forms import SearchForm, LoginForm, RegisterForm, TweetForm, ChangeInfoForm
+
+
+DISPATCH_SUCCESS = 1
+NO_DISPATCH      = 0
+DISPATCH_ERROR   = -1
 
 
 # Due to the global session variable changing the type to an regular tuple (for some reason ...), this User class
@@ -64,8 +69,9 @@ def home():
 
     # The use either did a search or interacted with a tweet.
     if request.method == 'POST':
-        if not dispatch_tweet_actions(request.form) and form.validate():
-            return redirect(url_for('tweets', search=form.search.data))
+        if dispatch_tweet_actions(request.form) == NO_DISPATCH:
+            if form.validate():
+                return redirect(url_for('tweets', search=form.search.data))
 
     if session.get('logged_in'):
         user = User(*session['user'])
@@ -86,8 +92,12 @@ def tweets(search=None):
 
     # The use either posted a tweet or interacted with a tweet.
     if request.method == 'POST':
-        if not dispatch_tweet_actions(request.form) and form.validate():
-            post_tweet(form.post.data)
+        if dispatch_tweet_actions(request.form) == NO_DISPATCH:
+            if form.validate():
+                try:
+                    post_tweet(form.post.data)
+                except (DatabaseException, NotLoggedInException) as error:
+                    flash(str(error), 'danger')
 
     if search:
         tweet_posts = search_for_tweets(search)
@@ -241,12 +251,11 @@ def dispatch_tweet_actions(form):
         if argument:
             try:
                 func(argument)
-                return True
-            except DatabaseException as error:
+                return DISPATCH_SUCCESS
+            except (DatabaseException, NotLoggedInException) as error:
                 flash(str(error), 'danger')
-            except NotLoggedInException as error:
-                flash(str(error), 'danger')
-    return False
+                return DISPATCH_ERROR
+    return NO_DISPATCH
 
 
 def get_logged_in_user():

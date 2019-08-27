@@ -6,7 +6,6 @@ from psycopg2 import connect, Error
 from psycopg2.extras import NamedTupleCursor
 from passlib.hash import sha256_crypt
 
-
 ERROR_TEMPLATE = """
 Couldn't connect to server. Potential problems might be:
     * You haven't started the server. This is done by running psql and connecting to the correct database.
@@ -21,20 +20,19 @@ Couldn't connect to server. Potential problems might be:
 
 
 class Database:
-
     DEFAULT_DATABASE = 'tweeter'
-    DEFAULT_USER     = 'postgres'
-    DEFAULT_PORT     = 5432
-    DEFAULT_HOST     = 'localhost'  # localhost is 127.0.0.1
+    DEFAULT_USER = 'tweeter_admin'
+    DEFAULT_PORT = 5432
+    DEFAULT_HOST = 'localhost'  # localhost is 127.0.0.1
 
     def __init__(self, dbname=DEFAULT_DATABASE, user=DEFAULT_USER, password='', host=DEFAULT_HOST, port=DEFAULT_PORT):
 
         self.arguments = {
-            'dbname':   dbname,
-            'user':     user,
+            'dbname'  : dbname,
+            'user'    : user,
             'password': password,
-            'host':     host,
-            'port':     port
+            'host'    : host,
+            'port'    : port
         }
 
         try:
@@ -67,7 +65,7 @@ class Database:
             self.connection.commit()
             return True
 
-    def get_result_from_last_query(self, number_of_tuples = -1):
+    def get_result_from_last_query(self, number_of_tuples=-1):
         """
         Returns the tuples produced from last query.
 
@@ -91,7 +89,7 @@ class Database:
             return ()
 
 
-database = Database(password=input('Password: '), port=int(input('Port: ')))
+database = Database(password=input('Password: '))
 
 
 def get_newest_tweets(number):
@@ -193,7 +191,7 @@ def get_followers_tweets(user_id):
             FROM users JOIN followers ON users.user_id = followers.user_id
             WHERE users.user_id = %(user_id)s
         )
-        
+
         SELECT tweet_id, poster_id, username, content, time_posted
         FROM user_followers JOIN tweets ON follower_id = poster_id JOIN users ON poster_id = user_id
         ORDER BY time_posted DESC;
@@ -253,7 +251,7 @@ def create_user(username, password, email, age):
 
     query = """
         START TRANSACTION READ WRITE ISOLATION LEVEL SERIALIZABLE;
-        
+
         INSERT INTO users (username, email, age) VALUES (%(username)s, %(email)s, %(age)s);
         INSERT INTO passwords (user_id, password) VALUES (
             (SELECT user_id FROM users WHERE email = %(email)s), %(password)s
@@ -317,7 +315,8 @@ def save_tweet(user_id, content):
         INSERT INTO tweets (poster_id, content, time_posted) 
         VALUES (%(user_id)s, %(content)s, %(time_posted)s);
     """
-    success = database.execute(query, user_id=user_id, content=content, time_posted=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    success = database.execute(query, user_id=user_id, content=content,
+                               time_posted=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     return success
 
 
@@ -334,7 +333,8 @@ def get_user_tweets(user_id):  # TODO(ted): This is not used, but we'll leave it
     return result
 
 
-def validate_and_perform_user_changes(user_id, password_confirmation, username=None, email=None, age=None, password=None):
+def validate_and_perform_user_changes(user_id, password_confirmation, username=None, email=None, age=None,
+                                      password=None):
     """
     Update the user's attributes.
 
@@ -377,7 +377,7 @@ def validate_and_perform_user_changes(user_id, password_confirmation, username=N
                 WHERE  user_id = %(user_id)s;
         """
         try:
-            database.cursor.execute(query, {'username':username, 'user_id':user_id})
+            database.cursor.execute(query, {'username': username, 'user_id': user_id})
         except Error as error:
             print(error.pgerror, file=sys.stderr)
             database.connection.rollback()
@@ -390,7 +390,7 @@ def validate_and_perform_user_changes(user_id, password_confirmation, username=N
                 WHERE  user_id = %(user_id)s;
         """
         try:
-            database.cursor.execute(query, {'age':age, 'user_id':user_id})
+            database.cursor.execute(query, {'age': age, 'user_id': user_id})
         except Error as error:
             print(error.pgerror, file=sys.stderr)
             database.connection.rollback()
@@ -404,7 +404,7 @@ def validate_and_perform_user_changes(user_id, password_confirmation, username=N
         """
         hashed_password = sha256_crypt.encrypt(password)
         try:
-            database.cursor.execute(query, {'password':hashed_password, 'user_id':user_id})
+            database.cursor.execute(query, {'password': hashed_password, 'user_id': user_id})
         except Error as error:
             print(error.pgerror, file=sys.stderr)
             database.connection.rollback()
@@ -417,7 +417,7 @@ def validate_and_perform_user_changes(user_id, password_confirmation, username=N
                 WHERE  user_id = %(user_id)s;
         """
         try:
-            database.cursor.execute(query, {'email':email, 'user_id':user_id})
+            database.cursor.execute(query, {'email': email, 'user_id': user_id})
         except Error as error:
             print(error.pgerror, file=sys.stderr)
             database.connection.rollback()
