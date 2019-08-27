@@ -45,7 +45,8 @@ The application is written and tested with Python 3 in mind. If you're using Pyt
 
 ## Notice
 
-This application is written as a simple project for learning to use a database. It is **not** written according to the best practices for a full-blown web application. Please don't take anything in the code as an example of proper use.
+* The flask server is supplied by Werkzeug, which loads your application twice in debug mode. This is to enable it to reload your server when the code changes without having to completely restart the server. However, this means that any code you have in the top-level will be run twice. Shouldn't cause any problem however, but is something to be aware about.
+* Some code in this application doesn't follow best practices. This is to keep things less complicated. One of the biggest concerns is the lack of an ORM, which was omitted as the course is about learning SQL and not about developing a website. This causes some synchronization issues and thus some hardcoding has to take place. So be cautious about taking things in this project as sign of good practice!
 
 ## Known errors/bugs
 

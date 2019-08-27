@@ -91,7 +91,7 @@ class Database:
             return ()
 
 
-database = Database(password='F#Qtg5455')
+database = Database(password=input('Password: '), port=int(input('Port: ')))
 
 
 def get_newest_tweets(number):
