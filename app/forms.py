@@ -23,6 +23,7 @@ TWEET_LENGTH_VALIDATOR  = validators.length(
         message='Tweet must be between %(min)s and %(max)s characters!'
     )
 
+
 class RegisterForm(Form):
     username = StringField(
         label='Username',

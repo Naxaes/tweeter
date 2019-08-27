@@ -4,15 +4,7 @@
 
     {% from 'includes/_formhelpers.html' import render_field %}
 
-    <h2>Your profile</h2>
-    <div class="container">
-        <p><b>Username: </b>{{ session['user'][1] }}</p>
-        <p><b>Email:    </b>{{ session['user'][2] }}</p>
-        <p><b>Age:      </b>{{ session['user'][3] }}</p>
-    </div>
-
-
-    <h2>Change info</h2>
+    <h1>Register</h1>
     <form method="POST" action="">
         <div class="form-group">
             {{ render_field(form.username, class_="form-control") }}
@@ -30,7 +22,7 @@
             {{ render_field(form.confirm, class_="form-control") }}
         </div>
 
-        <p><input type="submit" class="btn btn-primary" value="Confirm"></p>
+        <p><input type="submit" class="btn btn-primary" value="Submit"></p>
     </form>
 
 {% endblock %}

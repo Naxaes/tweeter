@@ -4,8 +4,6 @@ from urllib   import request
 from datetime import datetime, timedelta
 from random   import random, randrange, randint, choice, choices
 
-from dateutil.relativedelta import relativedelta
-
 # Third-party python package.
 from passlib.hash import sha256_crypt
 
@@ -255,7 +253,7 @@ def tweets_data_file(filename, number_of_posters, max_tweet_length, words):
     with open(filename, 'w') as datafile:
 
         end_time   = datetime.now()
-        start_time = end_time - relativedelta(years=5)
+        start_time = end_time - timedelta(days=365*4)
 
         for poster_id in range(1, number_of_posters+1):
             number_of_tweets = randint(1, 10)
