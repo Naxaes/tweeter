@@ -18,7 +18,7 @@ from flask import Flask, render_template, redirect, url_for, request, flash, ses
 # Project python packages
 # This import can be switched between 'database_exercise' and 'database' in order to test your implementation
 # against the expected implementation.
-from database import (
+from database_exercise import (
     get_newest_tweets, search_for_tweets, get_user, create_user, validate_login, save_tweet,
     validate_and_perform_user_changes, get_user_by_id, get_user_followers, get_followers_tweets, add_follower,
     remove_follower, remove_tweet
