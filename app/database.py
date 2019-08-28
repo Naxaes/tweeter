@@ -1,27 +1,48 @@
 import sys
 from datetime import datetime
+# from getpass import getpass  # This should be used when prompting for passwords, but it doesn't work in an IDE.
 
 from psycopg2 import connect, Error
 from psycopg2.extras import NamedTupleCursor
 from passlib.hash import sha256_crypt
 
+ERROR_TEMPLATE = """
+Couldn't connect to server. Potential problems might be:
+    * You haven't started the server. This is done by running psql and connecting to the correct database.
+    * You've passed incorrect arguments. Make sure the following arguments are correct:
+        Server      : {server}
+        Database    : {database}
+        Port        : {port}
+        Username    : {user}
+    * Another error occurred. Here's what psycopg2 suggestions:
+        {error}
+"""
+
 
 class Database:
+    DEFAULT_DATABASE = 'tweeter'
+    DEFAULT_USER = 'tweeter_admin'
+    DEFAULT_PORT = 5432
+    DEFAULT_HOST = 'localhost'  # localhost is 127.0.0.1
 
-    def __init__(self, dbname, user='', password='', host='localhost', port=5432):
+    def __init__(self, dbname=DEFAULT_DATABASE, user=DEFAULT_USER, password='', host=DEFAULT_HOST, port=DEFAULT_PORT):
 
         self.arguments = {
-            'dbname':   dbname,
-            'user':     user,
+            'dbname'  : dbname,
+            'user'    : user,
             'password': password,
-            'host':     host,
-            'port':     port
+            'host'    : host,
+            'port'    : port
         }
 
         try:
             self.connection = connect(**self.arguments)
         except Error as error:
-            print(error, "\nDid you remember to start your server?\n", file=sys.stderr)
+            print(
+                ERROR_TEMPLATE.format(
+                    server=host, database=dbname, port=port, user=user, error=str(error).replace('\n', '\n\t\t')
+                ), file=sys.stderr
+            )
             exit(-1)
 
         self.cursor = self.connection.cursor(cursor_factory=NamedTupleCursor)
@@ -41,11 +62,10 @@ class Database:
             self.connection.rollback()
             return False
         else:
-            # This will be executed if the exception isn't raised.
             self.connection.commit()
             return True
 
-    def get_result_from_last_query(self, number_of_tuples = -1):
+    def get_result_from_last_query(self, number_of_tuples=-1):
         """
         Returns the tuples produced from last query.
 
@@ -69,8 +89,7 @@ class Database:
             return ()
 
 
-database = Database(dbname='tweeter', user='postgres', password='F#Qtg5455', port=5433)
-
+database = Database(password=input('Password: '))
 
 
 def get_newest_tweets(number):
@@ -78,7 +97,7 @@ def get_newest_tweets(number):
     Fetch x amount of tweets ordered by time_posted (descending order).
 
     The values in each tuple should be:
-        tweetID, posterID, username, content, time_posted
+        tweet_id, poster_id, username, content, time_posted
 
     Return:
          all tuples in a list.
@@ -95,8 +114,8 @@ def get_newest_tweets(number):
         2
     """
     query = """
-        SELECT tweetID, posterID, username, content, time_posted
-        FROM   Users JOIN Tweets ON userID = posterID
+        SELECT tweet_id, poster_id, username, content, time_posted
+        FROM   users JOIN tweets ON user_id = poster_id
         ORDER BY time_posted DESC
         LIMIT %(number)s;
     """
@@ -110,10 +129,10 @@ def get_newest_tweets(number):
 
 def search_for_tweets(search):
     """
-    Fetch all tweets that has the search string in the content or in the username.
+    Fetch all tweets that has the search string in the content or in the username. Order by time posted.
 
     The values in each tuple should be:
-        tweetID, posterID, username, content, time_posted
+        tweet_id, poster_id, username, content, time_posted
 
     Return:
          all tuples in a list.
@@ -131,9 +150,10 @@ def search_for_tweets(search):
         3
     """
     query = """
-        SELECT tweetID, posterID, username, content, time_posted
-        FROM Users JOIN Tweets ON userID = posterID
-        WHERE username LIKE %(search)s OR content LIKE %(search)s;
+        SELECT tweet_id, poster_id, username, content, time_posted
+        FROM   users JOIN tweets ON user_id = poster_id
+        WHERE  username LIKE %(search)s OR content LIKE %(search)s
+        ORDER BY time_posted DESC;
     """
     database.execute(query, search='%{}%'.format(search))
     result = []
@@ -142,12 +162,12 @@ def search_for_tweets(search):
     return result
 
 
-def get_followers_tweets(userID):
+def get_followers_tweets(user_id):
     """
     Fetch all tweets that are posted by the user's followers.
 
     The values in each tuple should be:
-        tweetID, posterID, username, content, time_posted
+        tweet_id, poster_id, username, content, time_posted
 
     Where username is the username of the follower, not the user.
 
@@ -166,17 +186,17 @@ def get_followers_tweets(userID):
         5
     """
     query = """        
-        WITH UserFollowers AS (
-            SELECT followerID 
-            FROM Users JOIN Followers ON Users.userID = Followers.userID
-            WHERE Users.userID = %(userID)s
+        WITH user_followers AS (
+            SELECT follower_id 
+            FROM users JOIN followers ON users.user_id = followers.user_id
+            WHERE users.user_id = %(user_id)s
         )
-        
-        SELECT tweetID, posterID, username, content, time_posted
-        FROM UserFollowers JOIN Tweets ON followerID = posterID JOIN Users ON posterID = userID
+
+        SELECT tweet_id, poster_id, username, content, time_posted
+        FROM user_followers JOIN tweets ON follower_id = poster_id JOIN users ON poster_id = user_id
         ORDER BY time_posted DESC;
     """
-    database.execute(query, userID=userID)
+    database.execute(query, user_id=user_id)
     result = []
     for tweet in database.get_result_from_last_query():
         result.append(tweet)
@@ -188,7 +208,7 @@ def get_user(email):
     Fetch the user with the email.
 
     The values in each tuple should be:
-        userID, username, email, age
+        user_id, username, email, age
 
     Return:
          one tuple.
@@ -202,8 +222,8 @@ def get_user(email):
         1
     """
     query = """    
-        SELECT userID, username, email, age
-        FROM Users 
+        SELECT user_id, username, email, age
+        FROM users 
         WHERE email = %(email)s;
     """
     database.execute(query, email=email)
@@ -215,10 +235,10 @@ def create_user(username, password, email, age):
     """
     Add a new user to the database.
 
-    Insert the username, email and age in the Users table, and insert the password in the Passwords table.
+    Insert the username, email and age in the users table, and insert the password in the passwords table.
 
     Notice:
-        1. The userID is auto-generated.
+        1. The user_id is auto-generated.
         2. The password should be hashed and salted.
 
     Return:
@@ -231,10 +251,10 @@ def create_user(username, password, email, age):
 
     query = """
         START TRANSACTION READ WRITE ISOLATION LEVEL SERIALIZABLE;
-        
-        INSERT INTO Users (username, email, age) VALUES (%(username)s, %(email)s, %(age)s);
-        INSERT INTO Passwords (userID, password) VALUES (
-            (SELECT userID FROM Users WHERE email = %(email)s), %(password)s
+
+        INSERT INTO users (username, email, age) VALUES (%(username)s, %(email)s, %(age)s);
+        INSERT INTO passwords (user_id, password) VALUES (
+            (SELECT user_id FROM users WHERE email = %(email)s), %(password)s
         );
     """
 
@@ -259,8 +279,8 @@ def validate_login(email, password):
     """
     query = """    
         SELECT password
-        FROM   Passwords
-        WHERE  userID = (SELECT userID FROM Users WHERE email = %(email)s);
+        FROM   passwords
+        WHERE  user_id = (SELECT user_id FROM users WHERE email = %(email)s);
     """
 
     database.execute(query, email=email)
@@ -275,13 +295,13 @@ def validate_login(email, password):
         return -1
 
 
-def post_tweet(userID, content):
+def save_tweet(user_id, content):
     """
     Save the a tweet in the database.
 
 
     Notice:
-        1. userID should be saved as posterID.
+        1. user_id should be saved as poster_id.
         2. To get the current time (and properly formatted) you can use the function:
               current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -292,27 +312,29 @@ def post_tweet(userID, content):
         2
     """
     query = """    
-        INSERT INTO Tweets (posterID, content, time_posted) 
-        VALUES (%(userID)s, %(content)s, %(time_posted)s);
+        INSERT INTO tweets (poster_id, content, time_posted) 
+        VALUES (%(user_id)s, %(content)s, %(time_posted)s);
     """
-    success = database.execute(query, userID=userID, content=content, time_posted=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    success = database.execute(query, user_id=user_id, content=content,
+                               time_posted=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     return success
 
 
-def get_user_tweets(userID):  # TODO(ted): This is not used, but we'll leave it here for now.
+def get_user_tweets(user_id):  # TODO(ted): This is not used, but we'll leave it here for now.
     query = """
-        SELECT tweetID, posterID, username, content, time_posted
-        FROM   Users JOIN Tweets ON userID = posterID
-        WHERE  userID = %(userID)s;
+        SELECT tweet_id, poster_id, username, content, time_posted
+        FROM   users JOIN tweets ON user_id = poster_id
+        WHERE  user_id = %(user_id)s;
     """
-    database.execute(query, userID=userID)
+    database.execute(query, user_id=user_id)
     result = []
     for tweet in database.get_result_from_last_query():
         result.append(tweet)
     return result
 
 
-def validate_and_perform_user_changes(userID, password_confirmation, username=None, email=None, age=None, password=None):
+def validate_and_perform_user_changes(user_id, password_confirmation, username=None, email=None, age=None,
+                                      password=None):
     """
     Update the user's attributes.
 
@@ -325,61 +347,93 @@ def validate_and_perform_user_changes(userID, password_confirmation, username=No
          True if password is correct, False otherwise.
 
     Hardness:
-        3
+        5
     """
+
+    # First query the password.
     query = """
         SELECT password
-        FROM   Passwords
-        WHERE  userID = %(userID)s;
+        FROM   passwords
+        WHERE  user_id = %(user_id)s;
     """
-    database.execute(query, userID=userID)
+    database.execute(query, user_id=user_id)
     result = database.get_result_from_last_query(1)
 
-    if not sha256_crypt.verify(password_confirmation, result.password):
+    if not result:
         return False
+    elif not sha256_crypt.verify(password_confirmation, result.password):
+        return False
+
+    # This have to be a transaction. Otherwise we might only change parts of the user's info. Since we're executing
+    # multiple queries within the transaction, we cannot use the database's helper function 'execute', since it commits
+    # each query. We'll have to use the cursor manually and only commit at the end of the function.
+    start_transaction = "START TRANSACTION READ WRITE ISOLATION LEVEL SERIALIZABLE;"
+    database.cursor.execute(start_transaction)
 
     if username:
         query = """
-                UPDATE Users 
+                UPDATE users 
                 SET    username = %(username)s 
-                WHERE  userID = %(userID)s;
-            """
-        database.execute(query, username=username, userID=userID)
+                WHERE  user_id = %(user_id)s;
+        """
+        try:
+            database.cursor.execute(query, {'username': username, 'user_id': user_id})
+        except Error as error:
+            print(error.pgerror, file=sys.stderr)
+            database.connection.rollback()
+            return False
 
     if age:
         query = """
-                UPDATE Users 
+                UPDATE users 
                 SET    age = %(age)s 
-                WHERE  userID = %(userID)s;
-            """
-        database.execute(query, age=age, userID=userID)
+                WHERE  user_id = %(user_id)s;
+        """
+        try:
+            database.cursor.execute(query, {'age': age, 'user_id': user_id})
+        except Error as error:
+            print(error.pgerror, file=sys.stderr)
+            database.connection.rollback()
+            return False
 
     if password:
         query = """
-                UPDATE Passwords 
+                UPDATE passwords 
                 SET    password = %(password)s 
-                WHERE  userID = %(userID)s;
-            """
+                WHERE  user_id = %(user_id)s;
+        """
         hashed_password = sha256_crypt.encrypt(password)
-        database.execute(query, password=hashed_password, userID=userID)
+        try:
+            database.cursor.execute(query, {'password': hashed_password, 'user_id': user_id})
+        except Error as error:
+            print(error.pgerror, file=sys.stderr)
+            database.connection.rollback()
+            return False
 
     if email:
         query = """
-                UPDATE Users 
+                UPDATE users 
                 SET    email  = %(email)s 
-                WHERE  userID = %(userID)s;
-            """
-        database.execute(query, email=email, userID=userID)
+                WHERE  user_id = %(user_id)s;
+        """
+        try:
+            database.cursor.execute(query, {'email': email, 'user_id': user_id})
+        except Error as error:
+            print(error.pgerror, file=sys.stderr)
+            database.connection.rollback()
+            return False
 
+    # Don't forget to commit the transaction!
+    database.connection.commit()
     return True
 
 
-def get_user_by_ID(userID):
+def get_user_by_id(user_id):
     """
-    Fetch the user with the userID.
+    Fetch the user with the user_id.
 
     The values in each tuple should be:
-        userID, username, email, age
+        user_id, username, email, age
 
     Return:
          one tuple.
@@ -393,21 +447,21 @@ def get_user_by_ID(userID):
         1
     """
     query = """
-        SELECT userID, username, email, age
-        FROM   Users
-        WHERE  userID = %(userID)s;
+        SELECT user_id, username, email, age
+        FROM   users
+        WHERE  user_id = %(user_id)s;
     """
-    database.execute(query, userID=userID)
+    database.execute(query, user_id=user_id)
     result = database.get_result_from_last_query(1)
     return result
 
 
-def get_user_followers(userID):
+def get_user_followers(user_id):
     """
-    Fetch the followers of the user with the userID.
+    Fetch the followers of the user with the user_id.
 
     The values in each tuple should be:
-        followerID
+        follower_id
 
     Return:
          one tuple.
@@ -422,18 +476,18 @@ def get_user_followers(userID):
         1
     """
     query = """
-        SELECT followerID
-        FROM   Followers
-        WHERE  userID = %(userID)s;
+        SELECT follower_id
+        FROM   followers
+        WHERE  user_id = %(user_id)s;
     """
-    database.execute(query, userID=userID)
+    database.execute(query, user_id=user_id)
     result = []
     for follower in database.get_result_from_last_query():
-        result.append(follower.followerid)
+        result.append(follower.follower_id)
     return result
 
 
-def add_follower(userID, followerID):
+def add_follower(user_id, follower_id):
     """
     Add
 
@@ -444,13 +498,14 @@ def add_follower(userID, followerID):
         1
     """
     query = """
-        INSERT INTO Followers (userID, followerID) 
-        VALUES (%(userID)s, %(followerID)s);
+        INSERT INTO followers (user_id, follower_id) 
+        VALUES (%(user_id)s, %(follower_id)s);
     """
-    success = database.execute(query, userID=userID, followerID=followerID)
+    success = database.execute(query, user_id=user_id, follower_id=follower_id)
     return success
 
-def remove_follower(userID, followerID):
+
+def remove_follower(user_id, follower_id):
     """
     Add
 
@@ -461,14 +516,14 @@ def remove_follower(userID, followerID):
         1
     """
     query = """
-        DELETE FROM Followers 
-        WHERE userID = %(userID)s AND followerID = %(followerID)s;
+        DELETE FROM followers 
+        WHERE user_id = %(user_id)s AND follower_id = %(follower_id)s;
     """
-    success = database.execute(query, userID=userID, followerID=followerID)
+    success = database.execute(query, user_id=user_id, follower_id=follower_id)
     return success
 
 
-def remove_tweet(tweetID):
+def remove_tweet(tweet_id):
     """
     Add
 
@@ -479,8 +534,8 @@ def remove_tweet(tweetID):
         1
     """
     query = """
-        DELETE FROM Tweets 
-        WHERE tweetID = %(tweetID)s;
+        DELETE FROM tweets 
+        WHERE tweet_id = %(tweet_id)s;
     """
-    success = database.execute(query, tweetID=tweetID)
+    success = database.execute(query, tweet_id=tweet_id)
     return success

@@ -8,12 +8,13 @@ from passlib.hash import sha256_crypt
 
 
 
+
 def get_newest_tweets(number):
     """
     Fetch x amount of tweets ordered by time_posted (descending order).
 
     The values in each tuple should be:
-        tweetID, posterID, username, content, time_posted
+        tweet_id, poster_id, username, content, time_posted
 
     Return:
          all tuples in a list.
@@ -34,10 +35,10 @@ def get_newest_tweets(number):
 
 def search_for_tweets(search):
     """
-    Fetch all tweets that has the search string in the content or in the username.
+    Fetch all tweets that has the search string in the content or in the username. Order by time posted.
 
     The values in each tuple should be:
-        tweetID, posterID, username, content, time_posted
+        tweet_id, poster_id, username, content, time_posted
 
     Return:
          all tuples in a list.
@@ -57,12 +58,12 @@ def search_for_tweets(search):
     return []
 
 
-def get_followers_tweets(userID):
+def get_followers_tweets(user_id):
     """
     Fetch all tweets that are posted by the user's followers.
 
     The values in each tuple should be:
-        tweetID, posterID, username, content, time_posted
+        tweet_id, poster_id, username, content, time_posted
 
     Where username is the username of the follower, not the user.
 
@@ -88,7 +89,7 @@ def get_user(email):
     Fetch the user with the email.
 
     The values in each tuple should be:
-        userID, username, email, age
+        user_id, username, email, age
 
     Return:
          one tuple.
@@ -111,7 +112,7 @@ def create_user(username, password, email, age):
     Insert the username, email and age in the Users table, and insert the password in the Passwords table.
 
     Notice:
-        1. The userID is auto-generated.
+        1. The user_id is auto-generated.
         2. The password should be hashed and salted.
 
     Return:
@@ -140,13 +141,14 @@ def validate_login(email, password):
     """
     return -1
 
-def post_tweet(userID, content):
+
+def save_tweet(user_id, content):
     """
     Save the a tweet in the database.
 
 
     Notice:
-        1. userID should be saved as posterID.
+        1. user_id should be saved as poster_id.
         2. To get the current time (and properly formatted) you can use the function:
               current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -158,8 +160,8 @@ def post_tweet(userID, content):
     """
     return False
 
-def validate_and_perform_user_changes(userID, password_confirmation, username=None, email=None, age=None,
-                                      password=None):
+
+def validate_and_perform_user_changes(user_id, password_confirmation, username=None, email=None, age=None, password=None):
     """
     Update the user's attributes.
 
@@ -177,12 +179,12 @@ def validate_and_perform_user_changes(userID, password_confirmation, username=No
     return False
 
 
-def get_user_by_ID(userID):
+def get_user_by_id(user_id):
     """
-    Fetch the user with the userID.
+    Fetch the user with the user_id.
 
     The values in each tuple should be:
-        userID, username, email, age
+        user_id, username, email, age
 
     Return:
          one tuple.
@@ -198,12 +200,12 @@ def get_user_by_ID(userID):
     return ()
 
 
-def get_user_followers(userID):
+def get_user_followers(user_id):
     """
-    Fetch the followers of the user with the userID.
+    Fetch the followers of the user with the user_id.
 
     The values in each tuple should be:
-        followerID
+        follower_id
 
     Return:
          one tuple.
@@ -220,7 +222,7 @@ def get_user_followers(userID):
     return []
 
 
-def add_follower(userID, followerID):
+def add_follower(user_id, follower_id):
     """
     Add
 
@@ -233,7 +235,7 @@ def add_follower(userID, followerID):
     return False
 
 
-def remove_follower(userID, followerID):
+def remove_follower(user_id, follower_id):
     """
     Add
 
@@ -245,7 +247,8 @@ def remove_follower(userID, followerID):
     """
     return False
 
-def remove_tweet(tweetID):
+
+def remove_tweet(tweet_id):
     """
     Add
 

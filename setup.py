@@ -1,188 +1,67 @@
 """
-Run this file to install all libraries needed to run the application, and to create data
-files. You'll need access to internet in order to run this file successfully.
+Run this to install all libraries needed to run the application, and to create data files. You'll need access to
+internet in order to run this file successfully.
 """
-import pip
-import requests
-from random import random, choice, randint
-from random import randrange
-from datetime import datetime, timedelta
-from passlib.hash import sha256_crypt
+
 import os
-import re
+import sys
 
-LIBRARIES = [
-    'flask',
-    'psycopg2',
-    'wtforms',
-    'passlib'
-]
-
-CURRENT_DIRECTORY = os.getcwd()
-DATA_PATH  = os.path.join(CURRENT_DIRECTORY, 'data')
-USER_DATA  = os.path.join(DATA_PATH, 'users_data.txt')
-TWEET_DATA = os.path.join(DATA_PATH, 'tweets_data.txt')
-FOLLOWER_DATA   = os.path.join(DATA_PATH, 'followers_data.txt')
-PASSWORD_DATA   = os.path.join(DATA_PATH, 'passwords_data.txt')
-SQL_CREATE_FILE = os.path.join(DATA_PATH, 'create.sql')
-
-SQL_CREATE_FILE_TEMPLATE = """
-DROP TABLE IF EXISTS Users CASCADE;
-DROP TABLE IF EXISTS Tweets CASCADE;
-DROP TABLE IF EXISTS Followers CASCADE;
-DROP TABLE IF EXISTS Passwords CASCADE;
-
-
-CREATE TABLE Users (
-	userID   SERIAL PRIMARY KEY,
-	username VARCHAR(144) NOT NULL,
-	email    VARCHAR(144) UNIQUE NOT NULL,
-	age      INTEGER CONSTRAINT over_zero_years_old CHECK(age > 0)
-);
-
-
-CREATE TABLE Tweets (
-	tweetID     SERIAL PRIMARY KEY,
-	posterID    INTEGER REFERENCES Users(userID) ON DELETE CASCADE,
-	content     VARCHAR(144),
-	time_posted TIMESTAMP NOT NULL
-);
-
-
-CREATE TABLE Followers (
-	userID     INTEGER REFERENCES Users(userID) ON DELETE CASCADE,
-	followerID INTEGER REFERENCES Users(userID) ON DELETE CASCADE,
-
-	PRIMARY KEY (userID, followerID)
-);
-
-
-CREATE TABLE Passwords (
-    userID   INTEGER REFERENCES Users(userID) ON DELETE CASCADE PRIMARY KEY,
-    password VARCHAR(144) NOT NULL
-);
-
-
-
-\copy Users(username, email, age) FROM '{userdata}' USING DELIMITERS ',';
-\copy Tweets(posterID, content, time_posted) FROM '{tweetdata}' USING DELIMITERS ',';
-\copy Followers(userID, followerID) FROM '{followerdata}' USING DELIMITERS ',';
-\copy Passwords(userID, password) FROM '{passworddata}' USING DELIMITERS ',';
+assert sys.version_info >= (3, 6, 0), "Your python version {}.{}.{} is too old. Please use a newer version.".format(*sys.version_info)
+"""
+Python versions between 3.0 and 3.6 will probably work as well. However, pip isn't included until 3.4 in the default
+python installation, and there are some API differences. If you want to use another version, then you'll have to do the 
+appropriate changes manually. 
 """
 
-URL_TO_ENGLISH_WORDS = 'https://raw.githubusercontent.com/dwyl/english-words/master/words.txt'
-NAMES = [
-    'transportwildcat', 'wrapteal', 'listenseagull', 'peerswallow', 'admireowl', 'shrugbuzzard', 'orderoxbird',
-    'requestlion', 'operatewildebeest', 'yodelplover', 'hidechamois', 'minehamster', 'scrapegoldfinch',
-    'volunteersheldrake', 'entertainsnail', 'severblackbird', 'causekookaburra', 'commenttuna', 'bleachraven',
-    'wishptarmigan', 'fearpheasant', 'avowlemur', 'borroweland', 'tossdoves'
-]
-DOMAINS = ['@hotmail.com', '@kth.se', '@gmail.com', '@msn.com']
+# Project python packages.
+from scripts import install
+from scripts import generate
 
+prompt = '''\
+Do you want to:
+   1. Install dependencies.
+   2. Generate database data and forms.
+   3. Both.
+'''
 
-def install_libraries(libraries):
-    for library in libraries:
-        pip.main(['install', library])
-
-def random_bool(percentage):
-    return random() < percentage
-
-def random_date(start, end):
-    delta = end - start
-    int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
-    random_second = randrange(int_delta)
-    return start + timedelta(seconds=random_second)
-
-def random_mail(words):
-    email = ''
-    for _ in range(1, int(random() * 4) + 2):
-        email += words[int(random() * (len(words) - 1))]
-    re.sub(r'\W+', '', email)
-    email += choice(DOMAINS)
-    return email
-
-def random_message(words, max_character_count, min_word_count=5, max_word_count=30):
-    punctuation = ['!', '.', '...', '?', '']
-    word_list = []
-    word_count = randint(min_word_count, max_word_count)
-
-    for _ in range(word_count):
-        word_index = randint(0, len(words) - 1)
-        word_list.append(words[word_index])
-    word_list.append(choice(punctuation))
-
-    message = ''.join(word_list)
-
-    if len(message) > max_character_count:
-        message = message[0:max_character_count]
-
-    return message
-
-def create_users_data_file(filename, names, words):
-    with open(filename, 'w') as datafile:
-        for i, name in enumerate(names):
-            username = name
-            email = random_mail(words)
-            age = int(random() * 100) + 1
-
-            datafile.write('{},{},{}\n'.format(username, email, age))
-
-def create_tweets_data_file(filename, number_of_posters, words):
-    with open(filename, 'w') as datafile:
-
-        d1 = datetime.strptime('2008-01-01 00:00:00', '%Y-%m-%d %H:%M:%S')
-        d2 = datetime.now()
-
-        posterID = 1
-        for _ in range(number_of_posters):
-            number_of_tweets = randint(1, 10)
-            for _ in range(number_of_tweets):
-                content = random_message(words, 144)
-                time_posted = random_date(d1, d2)
-
-                datafile.write('{},{},{}\n'.format(posterID, content, time_posted))
-
-            posterID += 1
-            if posterID > number_of_posters:
-                return
-
-def create_followers_data_file(filename, number_of_users):
-    with open(filename, 'w') as datafile:
-        followers = set()
-        following_percentage = 0.6
-
-        for userID in range(number_of_users):
-            for followerID in range(number_of_users):
-                if random() < following_percentage and userID != followerID:
-                    followers.add((userID, followerID))
-                    datafile.write('{},{}\n'.format(userID, followerID))
-
-
-def create_passwords_data_file(filename, names):
-    with open(filename, 'w') as datafile:
-        for i, name in enumerate(names, start=1):
-            password = sha256_crypt.hash(name[0:4])
-            datafile.write('{},{}\n'.format(i, password))
-
-def create_sql_create_file(filename, template):
-    sql_create_file = template.format(
-        userdata=USER_DATA, tweetdata=TWEET_DATA, followerdata=FOLLOWER_DATA, passworddata=PASSWORD_DATA
-    )
-    with open(filename, 'w') as datafile:
-        datafile.write(sql_create_file)
 
 def main():
-    install_libraries(LIBRARIES)
 
-    random_words = requests.get(URL_TO_ENGLISH_WORDS).content.decode('utf-8').split()
-    os.mkdir(DATA_PATH)
+    answer = input(prompt)
+    while answer not in ('1', '2', '3'):
+        answer = input("Please type 1, 2 or 3. ")
 
-    create_users_data_file(USER_DATA, NAMES, random_words)
-    create_tweets_data_file(TWEET_DATA, len(NAMES), random_words)
-    create_followers_data_file(FOLLOWER_DATA, len(NAMES))
-    create_passwords_data_file(PASSWORD_DATA, NAMES)
+    if answer == '1':
+        do_installation = True
+        do_generation   = False
+    elif answer == '2':
+        do_installation = False
+        do_generation   = True
+    elif answer == '3':
+        do_installation = True
+        do_generation   = True
+    else:
+        raise ValueError(f"Invalid input '{answer}'!")
 
-    create_sql_create_file(SQL_CREATE_FILE, SQL_CREATE_FILE_TEMPLATE)
+
+    # Install all necessary libraries before continuing.
+    if do_installation:
+        print('Installing...')
+        install.install_libraries_with_pip(install.REQUIRED_LIBRARIES)
+        if sys.platform.startswith('darwin') and sys.version_info.minor >= 6:
+            install.install_some_stupid_stuff_required_by_mac_for_python_version_3_6_and_above_to_certify_https_requests()
+        print('Installation completed!')
+
+    # Generate the data files.
+    if do_generation:
+        print('Generating...')
+        root_directory = os.getcwd()
+        generate.sql_create_file_and_data(root_directory)
+
+        # Generate forms based on database file
+        target_directory = os.path.join(os.getcwd(), 'app')
+        generate.forms_file(target_directory)
+        print('Generation completed!')
 
 
 if __name__ == '__main__':

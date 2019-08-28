@@ -29,23 +29,32 @@ To run the application, simply run _application.py_. By default, all functionali
 If you want to run the full-featured application, change the import in _applications.py_ from "from exercise_queries ..." to "from solution_queries ...". 
 
 ## Common errors
-* **The application throws the error "Did you remember to start your server?".**
+* **The application throws the error _"Couldn't connect to server. Potential problems might be: ..."_**
 
-If you want to run the full-featured version, you'll have to start the server. This is done by launching psql and connecting to the database.
+If you want to run the full-featured version, you'll have to start the server. This is done by launching psql and connecting to the correct database.
 
-Another possible solution is to change the arguments to the database class in the file _solution_queries.py_, as they are hardcoded. Change these values to the default values given to you when you run psql (those in square brackets below):
+Another problem might be the arguments you pass (or don't pass). Make sure the arguments match the values from psql:
 
 ![Terminal](https://i.imgur.com/tKTUkpG.png)
 
+The only difference should be that the `Database` is _"tweeter"_, rather than _"postgres"_.
+
 * **Another error pops up**
 
-The application is written and tested with Python 3 in mind. If you're using Python 2 it's possible that it doesn't work. If that's the case, please write a comment on the Ludu course explaining the error and I'll might try to make it compatible with Python 2.
+The application is written and tested with Python 3 in mind. If you're using Python 2 it won't work. Check your version by running `python --version`, or `py --version` if you're on Windows, in the command line.
 
 ## Notice
 
-This application is written as a simple project for learning to use a database. It is **not** written according to the best practices. Please don't take anything in the code as an example of proper use! For example, the code violates [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) among others.
+* The flask server is supplied by Werkzeug, which loads your application twice in debug mode. This is to enable it to reload your server when the code changes without having to completely restart the server. However, this means that any code you have in the top-level will be run twice. Shouldn't cause any problem however, but is something to be aware about.
+* Some code in this application doesn't follow best practices. This is to keep things less complicated. One of the biggest concerns is the lack of an ORM, which was omitted as the course is about learning SQL and not about developing a website. This causes some synchronization issues and thus some hardcoding has to take place. So be cautious about taking things in this project as sign of good practice!
 
+## Known errors/bugs
+
+* The paragraph tag doesn't wrap text by default. This means that posting a tweet with just a single long word or reducing your browser width will overflow the edge. Solution to this is to implement some check for long words and manually break them, or to include a CSS property `word-break`.
+* An email doesn't have to be valid. This could be fixed by adding a trigger to the User table and make sure the application handles those exceptions.
+* The settings page is not displaying good error messages when the data is invalid or the password is wrong. This could be fixed by raising an error from `validate_and_perform_user_changes` which could get caught in the application and displayed with a flash message.
+* Searching for a tweet containing an URL (for example 'http://127.0.0.1:5000'), will yield 'Not Found'.
 
 ## Author
 
-The project is written by Ted Klein Bergman, a KTH student in Medieteknik. He's a T.A. in Database and Software Development and passionated about programming. He's also not afraid of constructive criticism, so don't be afraid to point out errors in the Ludu course.
+The project is written by Ted Klein Bergman, a KTH student in Media Technology / Computer Science. He's a T.A. in Database and Software Development and passionated about programming. He's also not afraid of constructive criticism, so don't be afraid to point out errors in the Ludu course.
