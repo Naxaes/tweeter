@@ -24,9 +24,9 @@ You can download the libraries and create the tables manually, or by running `se
 
 ## Running the application
 
-To run the application, simply run _application.py_. By default, all functionality will be limited, as it is expected you provide the functionality yourself by filling in the functions in the file _exercise_queries.py_.
+To run the application, simply run `app/tweeter.py`. By default, all functionality will be limited, as it is expected you provide the functionality yourself by filling in the functions in the file `database_exercise.py`.
 
-If you want to run the full-featured application, change the import in _applications.py_ from "from exercise_queries ..." to "from solution_queries ...". 
+If you want to run the full-featured application, change the import in `app/tweeter.py` from `from database_exercise ...` to `from database ...`. 
 
 ## Common errors
 * **The application throws the error _"Couldn't connect to server. Potential problems might be: ..."_**
