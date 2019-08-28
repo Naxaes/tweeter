@@ -31,13 +31,13 @@ If you want to run the full-featured application, change the import in _applicat
 ## Common errors
 * **The application throws the error _"Couldn't connect to server. Potential problems might be: ..."_**
 
-If you want to run the full-featured version, you'll have to start the server. This is done by launching psql and connecting to the correct database.
+If you want to run the full-featured version, you'll have to start the server. Launch psql and connecting to the database.
 
 Another problem might be the arguments you pass (or don't pass). Make sure the arguments match the values from psql:
 
 ![Terminal](https://i.imgur.com/tKTUkpG.png)
 
-The only difference should be that the `Database` is _"tweeter"_, rather than _"postgres"_.
+The only differences should be that the `Database` is _"tweeter"_ (rather than _"postgres"_) and `Username` is _"tweeter_admin"_.
 
 * **Another error pops up**
 
