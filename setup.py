@@ -13,9 +13,6 @@ python installation, and there are some API differences. If you want to use anot
 appropriate changes manually. 
 """
 
-# Project python packages.
-from scripts import install
-from scripts import generate
 
 prompt = '''\
 Do you want to:
@@ -43,6 +40,7 @@ def main():
     else:
         raise ValueError(f"Invalid input '{answer}'!")
 
+    from scripts import install
 
     # Install all necessary libraries before continuing.
     if do_installation:
@@ -51,6 +49,8 @@ def main():
         if sys.platform.startswith('darwin') and sys.version_info.minor >= 6:
             install.install_some_stupid_stuff_required_by_mac_for_python_version_3_6_and_above_to_certify_https_requests()
         print('Installation completed!')
+
+    from scripts import generate
 
     # Generate the data files.
     if do_generation:
