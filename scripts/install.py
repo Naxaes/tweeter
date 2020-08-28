@@ -5,10 +5,11 @@ from pathlib import Path
 
 
 REQUIRED_LIBRARIES = [
-    'flask    >= 1.1.0, < 2.0.0',
-    'psycopg2 >= 2.8.0, < 3.0.0',
-    'wtforms  >= 2.2.0, < 3.0.0',
-    'passlib  >= 1.7.0, < 2.0.0',
+    'flask           >= 1.1.0, < 2.0.0',
+    'psycopg2        >= 2.8.0, < 3.0.0',
+    'wtforms         >= 2.2.0, < 3.0.0',
+    'passlib         >= 1.7.0, < 2.0.0',
+    'email_validator >= 1.1.1, < 2.0.0',
 ]
 
 
